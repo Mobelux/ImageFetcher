@@ -8,7 +8,7 @@
 
 import Foundation
 
-protocol Queue {
+public protocol Queue {
     var maxConcurrentOperationCount: Int { get set }
 
     init()

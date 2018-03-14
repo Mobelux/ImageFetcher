@@ -10,11 +10,11 @@ import UIKit
 import DataOperation
 import DiskCache
 
-final class ImageLoader {
+public final class ImageLoader {
     private var queue: Queue
     private var cache: Cache
 
-    init(_ queue: Queue = OperationQueue(), cache: Cache = DiskCache(storageType: .temporary)) {
+    public init(_ queue: Queue = OperationQueue(), cache: Cache = DiskCache(storageType: .temporary)) {
         self.cache = cache
         self.queue = queue
 
@@ -32,7 +32,7 @@ final class ImageLoader {
      - Note: Handler always gets called on an arbitrary background queue
 
      **/
-    func task(_ imageConfiguration: ImageConfiguration, handler: @escaping (ImageLoaderTask) -> ()) {
+    public func task(_ imageConfiguration: ImageConfiguration, handler: @escaping (ImageLoaderTask) -> ()) {
         DispatchQueue.global(qos: .background).async {
             // if data is cached, use it, else use `DataOperation` to fetch image data
             if let cachedData = try? self.cache.data(imageConfiguration.key), let data = cachedData, let image = UIImage(data: data) {
@@ -61,7 +61,7 @@ final class ImageLoader {
      - Note: Handler always gets called on an arbitrary background queue
 
      **/
-    func load(_ imageConfiguration: ImageConfiguration, handler: @escaping ImageHandler) {
+    public func load(_ imageConfiguration: ImageConfiguration, handler: @escaping ImageHandler) {
         task(imageConfiguration) { task in
             if let result = task.result {
                 handler(result)
@@ -76,7 +76,7 @@ extension ImageLoader {
     /*
      Deletes image configuration from the cache
      */
-    func delete(_ imageConfiguration: ImageConfiguration) {
+    public func delete(_ imageConfiguration: ImageConfiguration) {
         do {
             try cache.delete(imageConfiguration.key)
         } catch {

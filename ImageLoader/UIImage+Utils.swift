@@ -8,7 +8,7 @@
 
 import UIKit
 
-extension UIImage {
+public extension UIImage {
     private func sizeFittingSize(_ maxSize: CGSize, size: CGSize) -> CGSize {
         let originalAspectRatio = size.width / size.height
         if size.width > size.height {
@@ -20,7 +20,7 @@ extension UIImage {
         }
     }
 
-    func rounded(_ radius: CGFloat, scale: CGFloat = 1.0) -> UIImage? {
+    public func rounded(_ radius: CGFloat, scale: CGFloat = 1.0) -> UIImage? {
         defer {
             UIGraphicsEndImageContext()
         }
@@ -39,7 +39,7 @@ extension UIImage {
         return UIGraphicsGetImageFromCurrentImageContext()
     }
 
-    func resize(_ size: CGSize, constrain: Bool = false, cornerRadius: CGFloat = 0, scale: CGFloat = 1.0) -> UIImage? {
+    public func resize(_ size: CGSize, constrain: Bool = false, cornerRadius: CGFloat = 0, scale: CGFloat = 1.0) -> UIImage? {
         if size.width.isNaN || size.height.isNaN {
             return nil
         }
@@ -63,7 +63,7 @@ extension UIImage {
         return UIGraphicsGetImageFromCurrentImageContext()
     }
 
-    func edit(configuration: ImageConfiguration) -> UIImage? {
+    public func edit(configuration: ImageConfiguration) -> UIImage? {
         guard configuration.size != nil || configuration.cornerRadius > 0 else {
             return self
         }

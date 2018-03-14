@@ -9,7 +9,7 @@
 import Foundation
 import DataOperation
 
-enum ImageError: LocalizedError {
+public enum ImageError: LocalizedError {
     case cannotParse
     case noResult
     case unknown

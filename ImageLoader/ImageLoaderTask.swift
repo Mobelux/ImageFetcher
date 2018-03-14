@@ -9,13 +9,13 @@
 import UIKit
 import DataOperation
 
-typealias ImageHandler = (Result<ResultType<UIImage>, ImageError>) -> ()
+public typealias ImageHandler = (Result<ResultType<UIImage>, ImageError>) -> ()
 
-final class ImageLoaderTask {
+public final class ImageLoaderTask {
     private var operation: DataOperation?
 
-    var handler: ImageHandler?
-    var result: Result<ResultType<UIImage>, ImageError>? {
+    public var handler: ImageHandler?
+    public var result: Result<ResultType<UIImage>, ImageError>? {
         didSet {
             guard let result = result else {
                 return
@@ -26,12 +26,12 @@ final class ImageLoaderTask {
         }
     }
 
-    init(operation: DataOperation? = nil, result: Result<ResultType<UIImage>, ImageError>? = nil) {
+    public init(operation: DataOperation? = nil, result: Result<ResultType<UIImage>, ImageError>? = nil) {
         self.operation = operation
         self.result = result
     }
 
-    func cancel() {
+    public func cancel() {
         operation?.cancel()
         operation = nil
     }
