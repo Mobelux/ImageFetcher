@@ -1,0 +1,6 @@
+[submodule "Submodules/DataOperation"]
+	path = Submodules/DataOperation
+	url = git@github.com:Mobelux/DataOperation.git
+[submodule "Submodules/DiskCache"]
+	path = Submodules/DiskCache
+	url = git@github.com:Mobelux/DiskCache.git
