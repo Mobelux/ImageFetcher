@@ -1,0 +1,35 @@
+{
+  "": {
+    "swift-dependencies": "/Users/jeremy/Projects/ImageLoader/.build/x86_64-apple-macosx10.10/debug/DataOperation.build/master.swiftdeps"
+  },
+  "/Users/jeremy/Projects/ImageLoader/.build/checkouts/DataOperation.git--3617766263808635041/Sources/DataOperation/DataOperation.swift": {
+    "dependencies": "/Users/jeremy/Projects/ImageLoader/.build/x86_64-apple-macosx10.10/debug/DataOperation.build/DataOperation.d",
+    "object": "/Users/jeremy/Projects/ImageLoader/.build/x86_64-apple-macosx10.10/debug/DataOperation.build/DataOperation.swift.o",
+    "swiftmodule": "/Users/jeremy/Projects/ImageLoader/.build/x86_64-apple-macosx10.10/debug/DataOperation.build/DataOperation~partial.swiftmodule",
+    "swift-dependencies": "/Users/jeremy/Projects/ImageLoader/.build/x86_64-apple-macosx10.10/debug/DataOperation.build/DataOperation.swiftdeps"
+  },
+  "/Users/jeremy/Projects/ImageLoader/.build/checkouts/DataOperation.git--3617766263808635041/Sources/DataOperation/Operation+Utils.swift": {
+    "dependencies": "/Users/jeremy/Projects/ImageLoader/.build/x86_64-apple-macosx10.10/debug/DataOperation.build/Operation+Utils.d",
+    "object": "/Users/jeremy/Projects/ImageLoader/.build/x86_64-apple-macosx10.10/debug/DataOperation.build/Operation+Utils.swift.o",
+    "swiftmodule": "/Users/jeremy/Projects/ImageLoader/.build/x86_64-apple-macosx10.10/debug/DataOperation.build/Operation+Utils~partial.swiftmodule",
+    "swift-dependencies": "/Users/jeremy/Projects/ImageLoader/.build/x86_64-apple-macosx10.10/debug/DataOperation.build/Operation+Utils.swiftdeps"
+  },
+  "/Users/jeremy/Projects/ImageLoader/.build/checkouts/DataOperation.git--3617766263808635041/Sources/DataOperation/Request.swift": {
+    "dependencies": "/Users/jeremy/Projects/ImageLoader/.build/x86_64-apple-macosx10.10/debug/DataOperation.build/Request.d",
+    "object": "/Users/jeremy/Projects/ImageLoader/.build/x86_64-apple-macosx10.10/debug/DataOperation.build/Request.swift.o",
+    "swiftmodule": "/Users/jeremy/Projects/ImageLoader/.build/x86_64-apple-macosx10.10/debug/DataOperation.build/Request~partial.swiftmodule",
+    "swift-dependencies": "/Users/jeremy/Projects/ImageLoader/.build/x86_64-apple-macosx10.10/debug/DataOperation.build/Request.swiftdeps"
+  },
+  "/Users/jeremy/Projects/ImageLoader/.build/checkouts/DataOperation.git--3617766263808635041/Sources/DataOperation/Result.swift": {
+    "dependencies": "/Users/jeremy/Projects/ImageLoader/.build/x86_64-apple-macosx10.10/debug/DataOperation.build/Result.d",
+    "object": "/Users/jeremy/Projects/ImageLoader/.build/x86_64-apple-macosx10.10/debug/DataOperation.build/Result.swift.o",
+    "swiftmodule": "/Users/jeremy/Projects/ImageLoader/.build/x86_64-apple-macosx10.10/debug/DataOperation.build/Result~partial.swiftmodule",
+    "swift-dependencies": "/Users/jeremy/Projects/ImageLoader/.build/x86_64-apple-macosx10.10/debug/DataOperation.build/Result.swiftdeps"
+  },
+  "/Users/jeremy/Projects/ImageLoader/.build/checkouts/DataOperation.git--3617766263808635041/Sources/DataOperation/Session.swift": {
+    "dependencies": "/Users/jeremy/Projects/ImageLoader/.build/x86_64-apple-macosx10.10/debug/DataOperation.build/Session.d",
+    "object": "/Users/jeremy/Projects/ImageLoader/.build/x86_64-apple-macosx10.10/debug/DataOperation.build/Session.swift.o",
+    "swiftmodule": "/Users/jeremy/Projects/ImageLoader/.build/x86_64-apple-macosx10.10/debug/DataOperation.build/Session~partial.swiftmodule",
+    "swift-dependencies": "/Users/jeremy/Projects/ImageLoader/.build/x86_64-apple-macosx10.10/debug/DataOperation.build/Session.swiftdeps"
+  }
+}

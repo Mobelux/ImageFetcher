@@ -1,0 +1,9 @@
+version: "Apple Swift version 4.0.3 (swiftlang-900.0.74.1 clang-900.0.39.2)"
+options: "59dee49c729e07405e841984bee996ce"
+build_time: [1521035648, 41489000]
+inputs:
+  "/Users/jeremy/Projects/ImageLoader/.build/checkouts/DataOperation.git--3617766263808635041/Sources/DataOperation/DataOperation.swift": [1520975767, 0]
+  "/Users/jeremy/Projects/ImageLoader/.build/checkouts/DataOperation.git--3617766263808635041/Sources/DataOperation/Operation+Utils.swift": [1520975767, 0]
+  "/Users/jeremy/Projects/ImageLoader/.build/checkouts/DataOperation.git--3617766263808635041/Sources/DataOperation/Request.swift": [1520975767, 0]
+  "/Users/jeremy/Projects/ImageLoader/.build/checkouts/DataOperation.git--3617766263808635041/Sources/DataOperation/Result.swift": [1520975767, 0]
+  "/Users/jeremy/Projects/ImageLoader/.build/checkouts/DataOperation.git--3617766263808635041/Sources/DataOperation/Session.swift": [1520975767, 0]

@@ -1,0 +1,7 @@
+version: "Apple Swift version 4.0.3 (swiftlang-900.0.74.1 clang-900.0.39.2)"
+options: "313df9e344120a896e4523d548c7e724"
+build_time: [1521035648, 31544000]
+inputs:
+  "/Users/jeremy/Projects/ImageLoader/.build/checkouts/DiskCache.git--5051105467910971729/Sources/DiskCache/Cache.swift": [1520974200, 0]
+  "/Users/jeremy/Projects/ImageLoader/.build/checkouts/DiskCache.git--5051105467910971729/Sources/DiskCache/DiskCache.swift": [1520974200, 0]
+  "/Users/jeremy/Projects/ImageLoader/.build/checkouts/DiskCache.git--5051105467910971729/Sources/DiskCache/StorageType.swift": [1520974200, 0]

@@ -96,7 +96,7 @@
 /* Begin PBXFileReference section */
 		"DataOperation::DataOperation::Product" /* DataOperation.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = DataOperation.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		"DiskCache::DiskCache::Product" /* DiskCache.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = DiskCache.framework; sourceTree = BUILT_PRODUCTS_DIR; };
-		"ImageLoader::ImageLoader::Product" /* ImageLoader.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = ImageLoader.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		"ImageLoader::ImageLoader::Product" /* ImageLoader.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = ImageLoader.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		"ImageLoader::ImageLoaderTests::Product" /* ImageLoaderTests.xctest */ = {isa = PBXFileReference; lastKnownFileType = file; path = ImageLoaderTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		OBJ_10 /* ImageError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageError.swift; sourceTree = "<group>"; };
 		OBJ_11 /* ImageLoader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageLoader.swift; sourceTree = "<group>"; };
@@ -236,7 +236,7 @@
 			name = Products;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
-		OBJ_5 /*  */ = {
+		OBJ_5 = {
 			isa = PBXGroup;
 			children = (
 				OBJ_6 /* Package.swift */,
@@ -245,7 +245,6 @@
 				OBJ_20 /* Dependencies */,
 				OBJ_35 /* Products */,
 			);
-			name = "";
 			sourceTree = "<group>";
 		};
 		OBJ_7 /* Sources */ = {
@@ -401,7 +400,7 @@
 			knownRegions = (
 				en,
 			);
-			mainGroup = OBJ_5 /*  */;
+			mainGroup = OBJ_5;
 			productRefGroup = OBJ_35 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
