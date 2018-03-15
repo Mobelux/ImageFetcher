@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		3F29AABA205AF16C00AAAAD1 /* DataOperation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3F92F853205AC18C0085E0D9 /* DataOperation.framework */; };
+		3F29AABB205AF16C00AAAAD1 /* DiskCache.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3F92F848205AC18C0085E0D9 /* DiskCache.framework */; };
 		3FADAC0320596EB500D60C4C /* ImageLoader.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3FADABF920596EB500D60C4C /* ImageLoader.framework */; };
 		3FADAC0820596EB500D60C4C /* ImageLoaderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3FADAC0720596EB500D60C4C /* ImageLoaderTests.swift */; };
 		3FADAC0A20596EB600D60C4C /* ImageLoader.h in Headers */ = {isa = PBXBuildFile; fileRef = 3FADABFC20596EB500D60C4C /* ImageLoader.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -21,6 +23,20 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
+		3F29AABC205AF17700AAAAD1 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 3F92F83E205AC18C0085E0D9 /* DiskCache.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = "DiskCache::DiskCache";
+			remoteInfo = DiskCache;
+		};
+		3F29AABE205AF17700AAAAD1 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 3F92F849205AC18C0085E0D9 /* DataOperation.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = "DataOperation::DataOperation";
+			remoteInfo = DataOperation;
+		};
 		3F92F845205AC18C0085E0D9 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 3F92F83E205AC18C0085E0D9 /* DiskCache.xcodeproj */;
@@ -82,6 +98,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				3F29AABA205AF16C00AAAAD1 /* DataOperation.framework in Frameworks */,
+				3F29AABB205AF16C00AAAAD1 /* DiskCache.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -202,6 +220,8 @@
 			buildRules = (
 			);
 			dependencies = (
+				3F29AABD205AF17700AAAAD1 /* PBXTargetDependency */,
+				3F29AABF205AF17700AAAAD1 /* PBXTargetDependency */,
 			);
 			name = ImageLoader;
 			productName = ImageLoader;
@@ -350,6 +370,16 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
+		3F29AABD205AF17700AAAAD1 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = DiskCache;
+			targetProxy = 3F29AABC205AF17700AAAAD1 /* PBXContainerItemProxy */;
+		};
+		3F29AABF205AF17700AAAAD1 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = DataOperation;
+			targetProxy = 3F29AABE205AF17700AAAAD1 /* PBXContainerItemProxy */;
+		};
 		3FADAC0520596EB500D60C4C /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = 3FADABF820596EB500D60C4C /* ImageLoader */;
