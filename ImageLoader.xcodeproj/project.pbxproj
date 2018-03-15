@@ -18,11 +18,37 @@
 		3FADAC2020596F1000D60C4C /* ImageLoader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3FADAC1820596F1000D60C4C /* ImageLoader.swift */; };
 		3FADAC2120596F1000D60C4C /* ImageLoaderTask.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3FADAC1920596F1000D60C4C /* ImageLoaderTask.swift */; };
 		3FADAC2220596F1000D60C4C /* ResultType.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3FADAC1A20596F1000D60C4C /* ResultType.swift */; };
-		3FADAC3E2059704900D60C4C /* DataOperation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3FADAC2D2059703200D60C4C /* DataOperation.framework */; };
-		3FADAC4B2059709500D60C4C /* DiskCache.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3FADAC4A2059708800D60C4C /* DiskCache.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
+		3F92F845205AC18C0085E0D9 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 3F92F83E205AC18C0085E0D9 /* DiskCache.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = "DiskCache::DiskCacheTests::Product";
+			remoteInfo = DiskCacheTests;
+		};
+		3F92F847205AC18C0085E0D9 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 3F92F83E205AC18C0085E0D9 /* DiskCache.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = "DiskCache::DiskCache::Product";
+			remoteInfo = DiskCache;
+		};
+		3F92F850205AC18C0085E0D9 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 3F92F849205AC18C0085E0D9 /* DataOperation.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = "DataOperation::DataOperationTests::Product";
+			remoteInfo = DataOperationTests;
+		};
+		3F92F852205AC18C0085E0D9 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 3F92F849205AC18C0085E0D9 /* DataOperation.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = "DataOperation::DataOperation::Product";
+			remoteInfo = DataOperation;
+		};
 		3FADAC0420596EB500D60C4C /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 3FADABF020596EB500D60C4C /* Project object */;
@@ -30,37 +56,11 @@
 			remoteGlobalIDString = 3FADABF820596EB500D60C4C;
 			remoteInfo = ImageLoader;
 		};
-		3FADAC2A2059703200D60C4C /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 3FADAC232059703200D60C4C /* DataOperation.xcodeproj */;
-			proxyType = 2;
-			remoteGlobalIDString = "DataOperation::DataOperationTests::Product";
-			remoteInfo = DataOperationTests;
-		};
-		3FADAC2C2059703200D60C4C /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 3FADAC232059703200D60C4C /* DataOperation.xcodeproj */;
-			proxyType = 2;
-			remoteGlobalIDString = "DataOperation::DataOperation::Product";
-			remoteInfo = DataOperation;
-		};
-		3FADAC472059708800D60C4C /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 3FADAC402059708800D60C4C /* DiskCache.xcodeproj */;
-			proxyType = 2;
-			remoteGlobalIDString = "DiskCache::DiskCacheTests::Product";
-			remoteInfo = DiskCacheTests;
-		};
-		3FADAC492059708800D60C4C /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 3FADAC402059708800D60C4C /* DiskCache.xcodeproj */;
-			proxyType = 2;
-			remoteGlobalIDString = "DiskCache::DiskCache::Product";
-			remoteInfo = DiskCache;
-		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		3F92F83E205AC18C0085E0D9 /* DiskCache.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = DiskCache.xcodeproj; path = Submodules/DiskCache/DiskCache.xcodeproj; sourceTree = "<group>"; };
+		3F92F849205AC18C0085E0D9 /* DataOperation.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = DataOperation.xcodeproj; path = Submodules/DataOperation/DataOperation.xcodeproj; sourceTree = "<group>"; };
 		3FADABF920596EB500D60C4C /* ImageLoader.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = ImageLoader.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		3FADABFC20596EB500D60C4C /* ImageLoader.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ImageLoader.h; sourceTree = "<group>"; };
 		3FADABFD20596EB500D60C4C /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -75,8 +75,6 @@
 		3FADAC1820596F1000D60C4C /* ImageLoader.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ImageLoader.swift; sourceTree = "<group>"; };
 		3FADAC1920596F1000D60C4C /* ImageLoaderTask.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ImageLoaderTask.swift; sourceTree = "<group>"; };
 		3FADAC1A20596F1000D60C4C /* ResultType.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ResultType.swift; sourceTree = "<group>"; };
-		3FADAC232059703200D60C4C /* DataOperation.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = DataOperation.xcodeproj; path = Submodules/DataOperation/DataOperation.xcodeproj; sourceTree = "<group>"; };
-		3FADAC402059708800D60C4C /* DiskCache.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = DiskCache.xcodeproj; path = Submodules/DiskCache/DiskCache.xcodeproj; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -84,8 +82,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				3FADAC4B2059709500D60C4C /* DiskCache.framework in Frameworks */,
-				3FADAC3E2059704900D60C4C /* DataOperation.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -100,11 +96,37 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		3F92F81F205AC1730085E0D9 /* Submodules */ = {
+			isa = PBXGroup;
+			children = (
+				3F92F83E205AC18C0085E0D9 /* DiskCache.xcodeproj */,
+				3F92F849205AC18C0085E0D9 /* DataOperation.xcodeproj */,
+			);
+			name = Submodules;
+			sourceTree = "<group>";
+		};
+		3F92F83F205AC18C0085E0D9 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				3F92F846205AC18C0085E0D9 /* DiskCacheTests.xctest */,
+				3F92F848205AC18C0085E0D9 /* DiskCache.framework */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		3F92F84A205AC18C0085E0D9 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				3F92F851205AC18C0085E0D9 /* DataOperationTests.xctest */,
+				3F92F853205AC18C0085E0D9 /* DataOperation.framework */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
 		3FADABEF20596EB500D60C4C = {
 			isa = PBXGroup;
 			children = (
-				3FADAC402059708800D60C4C /* DiskCache.xcodeproj */,
-				3FADAC232059703200D60C4C /* DataOperation.xcodeproj */,
+				3F92F81F205AC1730085E0D9 /* Submodules */,
 				3FADABFB20596EB500D60C4C /* ImageLoader */,
 				3FADAC0620596EB500D60C4C /* ImageLoaderTests */,
 				3FADABFA20596EB500D60C4C /* Products */,
@@ -147,29 +169,11 @@
 			path = ImageLoaderTests;
 			sourceTree = "<group>";
 		};
-		3FADAC242059703200D60C4C /* Products */ = {
-			isa = PBXGroup;
-			children = (
-				3FADAC2B2059703200D60C4C /* DataOperationTests.xctest */,
-				3FADAC2D2059703200D60C4C /* DataOperation.framework */,
-			);
-			name = Products;
-			sourceTree = "<group>";
-		};
 		3FADAC3D2059704900D60C4C /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
 			);
 			name = Frameworks;
-			sourceTree = "<group>";
-		};
-		3FADAC412059708800D60C4C /* Products */ = {
-			isa = PBXGroup;
-			children = (
-				3FADAC482059708800D60C4C /* DiskCacheTests.xctest */,
-				3FADAC4A2059708800D60C4C /* DiskCache.framework */,
-			);
-			name = Products;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -255,12 +259,12 @@
 			projectDirPath = "";
 			projectReferences = (
 				{
-					ProductGroup = 3FADAC242059703200D60C4C /* Products */;
-					ProjectRef = 3FADAC232059703200D60C4C /* DataOperation.xcodeproj */;
+					ProductGroup = 3F92F84A205AC18C0085E0D9 /* Products */;
+					ProjectRef = 3F92F849205AC18C0085E0D9 /* DataOperation.xcodeproj */;
 				},
 				{
-					ProductGroup = 3FADAC412059708800D60C4C /* Products */;
-					ProjectRef = 3FADAC402059708800D60C4C /* DiskCache.xcodeproj */;
+					ProductGroup = 3F92F83F205AC18C0085E0D9 /* Products */;
+					ProjectRef = 3F92F83E205AC18C0085E0D9 /* DiskCache.xcodeproj */;
 				},
 			);
 			projectRoot = "";
@@ -272,32 +276,32 @@
 /* End PBXProject section */
 
 /* Begin PBXReferenceProxy section */
-		3FADAC2B2059703200D60C4C /* DataOperationTests.xctest */ = {
-			isa = PBXReferenceProxy;
-			fileType = file;
-			path = DataOperationTests.xctest;
-			remoteRef = 3FADAC2A2059703200D60C4C /* PBXContainerItemProxy */;
-			sourceTree = BUILT_PRODUCTS_DIR;
-		};
-		3FADAC2D2059703200D60C4C /* DataOperation.framework */ = {
-			isa = PBXReferenceProxy;
-			fileType = wrapper.framework;
-			path = DataOperation.framework;
-			remoteRef = 3FADAC2C2059703200D60C4C /* PBXContainerItemProxy */;
-			sourceTree = BUILT_PRODUCTS_DIR;
-		};
-		3FADAC482059708800D60C4C /* DiskCacheTests.xctest */ = {
+		3F92F846205AC18C0085E0D9 /* DiskCacheTests.xctest */ = {
 			isa = PBXReferenceProxy;
 			fileType = file;
 			path = DiskCacheTests.xctest;
-			remoteRef = 3FADAC472059708800D60C4C /* PBXContainerItemProxy */;
+			remoteRef = 3F92F845205AC18C0085E0D9 /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
-		3FADAC4A2059708800D60C4C /* DiskCache.framework */ = {
+		3F92F848205AC18C0085E0D9 /* DiskCache.framework */ = {
 			isa = PBXReferenceProxy;
 			fileType = wrapper.framework;
 			path = DiskCache.framework;
-			remoteRef = 3FADAC492059708800D60C4C /* PBXContainerItemProxy */;
+			remoteRef = 3F92F847205AC18C0085E0D9 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		3F92F851205AC18C0085E0D9 /* DataOperationTests.xctest */ = {
+			isa = PBXReferenceProxy;
+			fileType = file;
+			path = DataOperationTests.xctest;
+			remoteRef = 3F92F850205AC18C0085E0D9 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		3F92F853205AC18C0085E0D9 /* DataOperation.framework */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.framework;
+			path = DataOperation.framework;
+			remoteRef = 3F92F852205AC18C0085E0D9 /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
 /* End PBXReferenceProxy section */
