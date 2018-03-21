@@ -85,13 +85,13 @@ public final class ImageLoader {
         }
     }
 
-    public func cancelLoad(_ imageConfiguration: ImageConfiguration) {
+    public func cancel(_ imageConfiguration: ImageConfiguration) {
         let task = self[imageConfiguration]
         task?.cancel()
         task?.handler = nil
     }
 
-    subscript (_ imageConfiguration: ImageConfiguration) -> ImageLoaderTask? {
+    public subscript (_ imageConfiguration: ImageConfiguration) -> ImageLoaderTask? {
         return tasks.first(where: { (task) -> Bool in
             task.configuration == imageConfiguration
         })
