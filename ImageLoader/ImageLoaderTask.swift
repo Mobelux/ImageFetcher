@@ -41,8 +41,7 @@ public final class ImageLoaderTask {
 
 extension ImageLoaderTask: Equatable {
     static public func == (lhs: ImageLoaderTask, rhs: ImageLoaderTask) -> Bool {
-        return lhs.configuration == rhs.configuration &&
-        lhs.operation == rhs.operation
+        return lhs.configuration == rhs.configuration
     }
 }
 
