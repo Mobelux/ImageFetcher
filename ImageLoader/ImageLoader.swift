@@ -13,6 +13,7 @@ import DiskCache
 public final class ImageLoader {
     private var queue: Queue
     private var cache: Cache
+    private var tasks: Set<ImageLoaderTask> = []
 
     public init(_ queue: Queue = OperationQueue(), cache: Cache = DiskCache(storageType: .temporary)) {
         self.cache = cache
@@ -36,13 +37,13 @@ public final class ImageLoader {
         DispatchQueue.global(qos: .background).async {
             // if data is cached, use it, else use `DataOperation` to fetch image data
             if let cachedData = try? self.cache.data(imageConfiguration.key), let data = cachedData, let image = UIImage(data: data) {
-                handler(ImageLoaderTask(result: .success(.cached(image))))
+                handler(ImageLoaderTask(configuration: imageConfiguration, result: .success(.cached(image))))
             } else {
                 let operation = DataOperation(request: URLRequest(url: imageConfiguration.url))
                 operation.name = imageConfiguration.key
 
-                let task = ImageLoaderTask(operation: operation)
-                operation.completionBlock = self.completion(for: operation, imageConfiguration: imageConfiguration, task: task)
+                let task = ImageLoaderTask(configuration: imageConfiguration, operation: operation)
+                operation.completionBlock = self.completion(task: task)
                 self.queue.addOperation(operation)
 
                 handler(task)
@@ -61,14 +62,39 @@ public final class ImageLoader {
      - Note: Handler always gets called on an arbitrary background queue
 
      **/
-    public func load(_ imageConfiguration: ImageConfiguration, handler: @escaping ImageHandler) {
+    public func load(_ imageConfiguration: ImageConfiguration, handler: ImageHandler?) {
         task(imageConfiguration) { task in
             if let result = task.result {
-                handler(result)
+                handler?(result)
             } else {
-                task.handler = handler
+                if let handler = handler {
+                    task.handler = handler
+                } else {
+                    self.tasks.insert(task)
+
+                    task.handler = { [weak self, weak task] result in
+                        guard let sself = self, let stask = task else {
+                            return
+                        }
+
+                        sself.tasks.remove(stask)
+                        handler?(result)
+                    }
+                }
             }
         }
+    }
+
+    public func cancelLoad(_ imageConfiguration: ImageConfiguration) {
+        let task = self[imageConfiguration]
+        task?.cancel()
+        task?.handler = nil
+    }
+
+    subscript (_ imageConfiguration: ImageConfiguration) -> ImageLoaderTask? {
+        return tasks.first(where: { (task) -> Bool in
+            task.configuration == imageConfiguration
+        })
     }
 }
 
@@ -100,7 +126,11 @@ private extension ImageLoader {
         }
     }
 
-    func completion(for operation: DataOperation, imageConfiguration: ImageConfiguration, task: ImageLoaderTask) -> (() -> ()) {
+    func completion(task: ImageLoaderTask) -> (() -> ()) {
+        guard let operation = task.operation else {
+            return {}
+        }
+
         return { [weak operation, unowned self] in
             // grab the operation's result
             guard let result = operation?.result else {
@@ -113,11 +143,11 @@ private extension ImageLoader {
                 switch result {
                 // data was successfully downloaded
                 case .success(let data):
-                    guard let image = UIImage(data: data), let editedImage = image.edit(configuration: imageConfiguration) else {
+                    guard let image = UIImage(data: data), let editedImage = image.edit(configuration: task.configuration) else {
                         return .error(.cannotParse)
                     }
 
-                    self.cache(editedImage, key: imageConfiguration)
+                    self.cache(editedImage, key: task.configuration)
 
                     return .success(.downloaded(editedImage))
                 case .error(let error):

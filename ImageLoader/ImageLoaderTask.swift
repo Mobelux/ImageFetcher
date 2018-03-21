@@ -12,9 +12,10 @@ import DataOperation
 public typealias ImageHandler = (Result<ResultType<UIImage>, ImageError>) -> ()
 
 public final class ImageLoaderTask {
-    private var operation: DataOperation?
+    var operation: DataOperation?
 
     public var handler: ImageHandler?
+    public var configuration: ImageConfiguration
     public var result: Result<ResultType<UIImage>, ImageError>? {
         didSet {
             guard let result = result else {
@@ -26,7 +27,8 @@ public final class ImageLoaderTask {
         }
     }
 
-    public init(operation: DataOperation? = nil, result: Result<ResultType<UIImage>, ImageError>? = nil) {
+    public init(configuration: ImageConfiguration, operation: DataOperation? = nil, result: Result<ResultType<UIImage>, ImageError>? = nil) {
+        self.configuration = configuration
         self.operation = operation
         self.result = result
     }
@@ -34,5 +36,18 @@ public final class ImageLoaderTask {
     public func cancel() {
         operation?.cancel()
         operation = nil
+    }
+}
+
+extension ImageLoaderTask: Equatable {
+    static public func == (lhs: ImageLoaderTask, rhs: ImageLoaderTask) -> Bool {
+        return lhs.configuration == rhs.configuration &&
+        lhs.operation == rhs.operation
+    }
+}
+
+extension ImageLoaderTask: Hashable {
+    public var hashValue: Int {
+        return configuration.key.hashValue
     }
 }
