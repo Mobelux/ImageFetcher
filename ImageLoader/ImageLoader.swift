@@ -14,12 +14,13 @@ public final class ImageLoader {
     private var queue: Queue
     private var cache: Cache
     private var tasks: Set<ImageLoaderTask> = []
+    private var workerQueue = DispatchQueue.global()
 
-    public init(_ queue: Queue = OperationQueue(), cache: Cache = DiskCache(storageType: .temporary)) {
+    public init(_ queue: Queue = OperationQueue(), cache: Cache = DiskCache(storageType: .temporary), maxConcurrent: Int = 2) {
         self.cache = cache
         self.queue = queue
 
-        self.queue.maxConcurrentOperationCount = 2
+        self.queue.maxConcurrentOperationCount = maxConcurrent
     }
 
     /**
@@ -30,23 +31,23 @@ public final class ImageLoader {
      - imageConfiguration: The configuation of the image to be installed.
      - handler: The handler which passes in an `ImageLoaderTask`
 
-     - Note: Handler always gets called on an arbitrary background queue
-
      **/
     public func task(_ imageConfiguration: ImageConfiguration, handler: @escaping (ImageLoaderTask) -> ()) {
-        DispatchQueue.global(qos: .background).async {
+        workerQueue.async {
             // if data is cached, use it, else use `DataOperation` to fetch image data
             if let cachedData = try? self.cache.data(imageConfiguration.key), let data = cachedData, let image = UIImage(data: data) {
                 handler(ImageLoaderTask(configuration: imageConfiguration, result: .success(.cached(image))))
             } else {
-                let operation = DataOperation(request: URLRequest(url: imageConfiguration.url))
-                operation.name = imageConfiguration.key
+                DispatchQueue.main.async {
+                    let operation = DataOperation(request: URLRequest(url: imageConfiguration.url))
+                    operation.name = imageConfiguration.key
 
-                let task = ImageLoaderTask(configuration: imageConfiguration, operation: operation)
-                operation.completionBlock = self.completion(task: task)
-                self.queue.addOperation(operation)
+                    let task = ImageLoaderTask(configuration: imageConfiguration, operation: operation)
+                    operation.completionBlock = self.completion(task: task)
+                    self.queue.addOperation(operation)
 
-                handler(task)
+                    handler(task)
+                }
             }
         }
     }
@@ -59,11 +60,9 @@ public final class ImageLoader {
      - imageConfiguration: The configuation of the image to be installed.
      - handler: The handler which passes in an `ImageHandler`
 
-     - Note: Handler always gets called on an arbitrary background queue
-
      **/
     public func load(_ imageConfiguration: ImageConfiguration, handler: ImageHandler?) {
-        task(imageConfiguration) { task in
+        task(imageConfiguration) { [unowned self] task in
             if let result = task.result {
                 handler?(result)
             } else {
@@ -71,24 +70,21 @@ public final class ImageLoader {
                     task.handler = handler
                 } else {
                     self.tasks.insert(task)
-
-                    task.handler = { [weak self, weak task] result in
-                        guard let sself = self, let stask = task else {
-                            return
-                        }
-
-                        sself.tasks.remove(stask)
-                        handler?(result)
-                    }
                 }
             }
         }
     }
 
-    public func cancel(_ imageConfiguration: ImageConfiguration) {
-        let task = self[imageConfiguration]
-        task?.cancel()
-        task?.handler = nil
+    public func clear(_ imageConfiguration: ImageConfiguration) {
+        guard let task = self[imageConfiguration] else {
+            return
+        }
+
+        task.cancel()
+        task.operation = nil
+        task.handler = nil
+
+        tasks.remove(task)
     }
 
     public subscript (_ imageConfiguration: ImageConfiguration) -> ImageLoaderTask? {
@@ -131,9 +127,9 @@ private extension ImageLoader {
             return {}
         }
 
-        return { [weak operation, unowned self] in
+        return { [unowned operation, unowned self] in
             // grab the operation's result
-            guard let result = operation?.result else {
+            guard let result = operation.result else {
                 task.result = .error(.noResult)
                 return
             }
