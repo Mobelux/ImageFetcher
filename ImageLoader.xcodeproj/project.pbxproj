@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		3F29AABA205AF16C00AAAAD1 /* DataOperation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3F92F853205AC18C0085E0D9 /* DataOperation.framework */; };
 		3F29AABB205AF16C00AAAAD1 /* DiskCache.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3F92F848205AC18C0085E0D9 /* DiskCache.framework */; };
+		3F86933B20656E2B0078D92D /* ImageLoading.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F86933420656E2A0078D92D /* ImageLoading.swift */; };
 		3FADAC0320596EB500D60C4C /* ImageLoader.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3FADABF920596EB500D60C4C /* ImageLoader.framework */; };
 		3FADAC0820596EB500D60C4C /* ImageLoaderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3FADAC0720596EB500D60C4C /* ImageLoaderTests.swift */; };
 		3FADAC0A20596EB600D60C4C /* ImageLoader.h in Headers */ = {isa = PBXBuildFile; fileRef = 3FADABFC20596EB500D60C4C /* ImageLoader.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -75,6 +76,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		3F86933420656E2A0078D92D /* ImageLoading.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ImageLoading.swift; sourceTree = "<group>"; };
 		3F92F83E205AC18C0085E0D9 /* DiskCache.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = DiskCache.xcodeproj; path = Submodules/DiskCache/DiskCache.xcodeproj; sourceTree = "<group>"; };
 		3F92F849205AC18C0085E0D9 /* DataOperation.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = DataOperation.xcodeproj; path = Submodules/DataOperation/DataOperation.xcodeproj; sourceTree = "<group>"; };
 		3FADABF920596EB500D60C4C /* ImageLoader.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = ImageLoader.framework; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -164,6 +166,7 @@
 		3FADABFB20596EB500D60C4C /* ImageLoader */ = {
 			isa = PBXGroup;
 			children = (
+				3F86933420656E2A0078D92D /* ImageLoading.swift */,
 				3FADAC1620596F1000D60C4C /* ImageConfiguration.swift */,
 				3FADAC1720596F1000D60C4C /* ImageError.swift */,
 				3FADAC1820596F1000D60C4C /* ImageLoader.swift */,
@@ -354,6 +357,7 @@
 				3FADAC2120596F1000D60C4C /* ImageLoaderTask.swift in Sources */,
 				3FADAC2220596F1000D60C4C /* ResultType.swift in Sources */,
 				3FADAC1E20596F1000D60C4C /* ImageConfiguration.swift in Sources */,
+				3F86933B20656E2B0078D92D /* ImageLoading.swift in Sources */,
 				3FADAC1F20596F1000D60C4C /* ImageError.swift in Sources */,
 				3FADAC1C20596F1000D60C4C /* Queue.swift in Sources */,
 			);

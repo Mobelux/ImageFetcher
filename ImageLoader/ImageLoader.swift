@@ -10,7 +10,7 @@ import UIKit
 import DataOperation
 import DiskCache
 
-public final class ImageLoader {
+public final class ImageLoader: ImageLoading {
     private var queue: Queue
     private var cache: Cache
     private var tasks: Set<ImageLoaderTask> = []
