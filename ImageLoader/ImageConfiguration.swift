@@ -42,7 +42,7 @@ extension ImageConfiguration: Keyable {
     public var key: String {
         let properties: [Any?] = [url, size, constrain, cornerRadius, scale]
 
-        let keyValues = properties.flatMap {
+        let keyValues = properties.compactMap {
             return $0 != nil ? String(describing: $0) : nil
         }
 
