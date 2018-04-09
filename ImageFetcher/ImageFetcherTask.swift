@@ -1,5 +1,5 @@
 //
-//  ImageLoaderTask.swift
+//  ImageFetcherTask.swift
 //  Mobelux
 //
 //  Created by Jeremy Greenwood on 2/8/18.
@@ -11,7 +11,7 @@ import DataOperation
 
 public typealias ImageHandler = (Result<ResultType<UIImage>, ImageError>) -> ()
 
-public final class ImageLoaderTask {
+public final class ImageFetcherTask {
     var operation: DataOperation?
 
     public var handler: ImageHandler?
@@ -39,13 +39,13 @@ public final class ImageLoaderTask {
     }
 }
 
-extension ImageLoaderTask: Equatable {
-    static public func == (lhs: ImageLoaderTask, rhs: ImageLoaderTask) -> Bool {
+extension ImageFetcherTask: Equatable {
+    static public func == (lhs: ImageFetcherTask, rhs: ImageFetcherTask) -> Bool {
         return lhs.configuration == rhs.configuration
     }
 }
 
-extension ImageLoaderTask: Hashable {
+extension ImageFetcherTask: Hashable {
     public var hashValue: Int {
         return configuration.key.hashValue
     }

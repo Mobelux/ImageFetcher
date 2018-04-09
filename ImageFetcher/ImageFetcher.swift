@@ -1,5 +1,5 @@
 //
-//  ImageLoader.swift
+//  ImageFetcher.swift
 //  Mobelux
 //
 //  Created by Jeremy Greenwood on 3/13/18.
@@ -10,10 +10,10 @@ import UIKit
 import DataOperation
 import DiskCache
 
-public final class ImageLoader: ImageLoading {
+public final class ImageFetcher: ImageFetching {
     private var queue: Queue
     private var cache: Cache
-    private var tasks: Set<ImageLoaderTask> = []
+    private var tasks: Set<ImageFetcherTask> = []
     private var workerQueue = DispatchQueue.global()
 
     public init(_ queue: Queue = OperationQueue(), cache: Cache = DiskCache(storageType: .temporary), maxConcurrent: Int = 2) {
@@ -32,17 +32,17 @@ public final class ImageLoader: ImageLoading {
      - handler: The handler which passes in an `ImageLoaderTask`
 
      **/
-    public func task(_ imageConfiguration: ImageConfiguration, handler: @escaping (ImageLoaderTask) -> ()) {
+    public func task(_ imageConfiguration: ImageConfiguration, handler: @escaping (ImageFetcherTask) -> ()) {
         workerQueue.async {
             // if data is cached, use it, else use `DataOperation` to fetch image data
             if let cachedData = try? self.cache.data(imageConfiguration.key), let data = cachedData, let image = UIImage(data: data) {
-                handler(ImageLoaderTask(configuration: imageConfiguration, result: .success(.cached(image))))
+                handler(ImageFetcherTask(configuration: imageConfiguration, result: .success(.cached(image))))
             } else {
                 DispatchQueue.main.async {
                     let operation = DataOperation(request: URLRequest(url: imageConfiguration.url))
                     operation.name = imageConfiguration.key
 
-                    let task = ImageLoaderTask(configuration: imageConfiguration, operation: operation)
+                    let task = ImageFetcherTask(configuration: imageConfiguration, operation: operation)
                     operation.completionBlock = self.completion(task: task)
                     self.queue.addOperation(operation)
 
@@ -87,14 +87,14 @@ public final class ImageLoader: ImageLoading {
         tasks.remove(task)
     }
 
-    public subscript (_ imageConfiguration: ImageConfiguration) -> ImageLoaderTask? {
+    public subscript (_ imageConfiguration: ImageConfiguration) -> ImageFetcherTask? {
         return tasks.first(where: { (task) -> Bool in
             task.configuration == imageConfiguration
         })
     }
 }
 
-extension ImageLoader {
+extension ImageFetcher {
     /*
      Deletes image configuration from the cache
      */
@@ -107,7 +107,7 @@ extension ImageLoader {
     }
 }
 
-private extension ImageLoader {
+private extension ImageFetcher {
     func cache(_ image: UIImage, key: Keyable) {
         // cache image data, if fails only print error
         do {
@@ -122,7 +122,7 @@ private extension ImageLoader {
         }
     }
 
-    func completion(task: ImageLoaderTask) -> (() -> ()) {
+    func completion(task: ImageFetcherTask) -> (() -> ()) {
         guard let operation = task.operation else {
             return {}
         }

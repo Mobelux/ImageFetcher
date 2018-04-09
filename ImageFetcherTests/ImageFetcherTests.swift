@@ -1,15 +1,15 @@
 //
-//  ImageLoaderTests.swift
-//  ImageLoaderTests
+//  ImageFetcherTests.swift
+//  ImageFetcherTests
 //
 //  Created by Jeremy Greenwood on 3/14/18.
 //  Copyright © 2018 Mobelux. All rights reserved.
 //
 
 import XCTest
-@testable import ImageLoader
+@testable import ImageFetcher
 
-class ImageLoaderTests: XCTestCase {
+class ImageFetcherTests: XCTestCase {
     
     override func setUp() {
         super.setUp()

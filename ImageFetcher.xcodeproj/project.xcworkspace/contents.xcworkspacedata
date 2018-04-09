@@ -2,6 +2,6 @@
 <Workspace
    version = "1.0">
    <FileRef
-      location = "self:ImageLoader.xcodeproj">
+      location = "self:/Users/jeremy/Projects/ImageLoader/ImageFetcher.xcodeproj">
    </FileRef>
 </Workspace>
