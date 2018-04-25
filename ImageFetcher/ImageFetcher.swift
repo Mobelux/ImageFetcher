@@ -35,7 +35,7 @@ public final class ImageFetcher: ImageFetching {
     public func task(_ imageConfiguration: ImageConfiguration, handler: @escaping (ImageFetcherTask) -> ()) {
         workerQueue.async {
             // if data is cached, use it, else use `DataOperation` to fetch image data
-            if let cachedData = try? self.cache.data(imageConfiguration.key), let data = cachedData, let image = UIImage(data: data) {
+            if let cachedData = try? self.cache.data(imageConfiguration.key), let data = cachedData, let image = UIImage(data: data)?.decompressed() {
                 handler(ImageFetcherTask(configuration: imageConfiguration, result: .success(.cached(image))))
             } else {
                 DispatchQueue.main.async {
