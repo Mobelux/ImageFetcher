@@ -127,9 +127,13 @@ private extension ImageFetcher {
             return {}
         }
 
-        return { [unowned operation, unowned self] in
+        return { [weak operation, weak self] in
+            guard let soperation = operation, let sself = self else {
+                return
+            }
+
             // grab the operation's result
-            guard let result = operation.result else {
+            guard let result = soperation.result else {
                 task.result = .error(.noResult)
                 return
             }
@@ -143,7 +147,7 @@ private extension ImageFetcher {
                         return .error(.cannotParse)
                     }
 
-                    self.cache(editedImage, key: task.configuration)
+                    sself.cache(editedImage, key: task.configuration)
 
                     return .success(.downloaded(editedImage))
                 case .error(let error):
