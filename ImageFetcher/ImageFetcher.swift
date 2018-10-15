@@ -105,10 +105,8 @@ extension ImageFetcher {
             print("\(#function) - \(error.localizedDescription)")
         }
     }
-}
 
-private extension ImageFetcher {
-    func cache(_ image: UIImage, key: Keyable) {
+    public func cache(_ image: UIImage, key: Keyable) {
         // cache image data, if fails only print error
         do {
             guard let data = UIImagePNGRepresentation(image) else {
@@ -122,6 +120,18 @@ private extension ImageFetcher {
         }
     }
 
+    public func load(image key: Keyable) -> UIImage? {
+        do {
+            guard let cachedData = try? self.cache.data(key.key), let data = cachedData, let image = UIImage(data: data) else {
+                return nil
+            }
+
+            return image
+        }
+    }
+}
+
+private extension ImageFetcher {
     func completion(task: ImageFetcherTask) -> (() -> ()) {
         guard let operation = task.operation else {
             return {}
