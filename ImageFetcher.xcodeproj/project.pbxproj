@@ -261,7 +261,7 @@
 				TargetAttributes = {
 					3FADABF820596EB500D60C4C = {
 						CreatedOnToolsVersion = 9.2;
-						LastSwiftMigration = 1000;
+						LastSwiftMigration = 1010;
 						ProvisioningStyle = Manual;
 					};
 					3FADAC0120596EB500D60C4C = {
