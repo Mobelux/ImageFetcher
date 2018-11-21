@@ -66,11 +66,8 @@ public final class ImageFetcher: ImageFetching {
             if let result = task.result {
                 handler?(result)
             } else {
-                if let handler = handler {
-                    task.handler = handler
-                } else {
-                    self.tasks.insert(task)
-                }
+                task.handler = handler
+                self.tasks.insert(task)
             }
         }
     }
