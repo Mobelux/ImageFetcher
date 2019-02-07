@@ -46,6 +46,6 @@ extension ImageConfiguration: Keyable {
             return $0 != nil ? String(describing: $0) : nil
         }
 
-        return String(keyValues.joined().hashValue)
+        return keyValues.joined().md5
     }
 }
