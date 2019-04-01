@@ -16,7 +16,7 @@ public final class ImageFetcher: ImageFetching {
     private var tasks: Set<ImageFetcherTask> = []
     private var workerQueue = DispatchQueue.global()
 
-    public init(_ queue: Queue = OperationQueue(), cache: Cache = DiskCache(storageType: .temporary("images")), maxConcurrent: Int = 2) {
+    public init(_ queue: Queue = OperationQueue(), cache: Cache = try! DiskCache(storageType: .temporary("images")), maxConcurrent: Int = 2) {
         self.cache = cache
         self.queue = queue
 
@@ -95,26 +95,16 @@ extension ImageFetcher {
     /*
      Deletes image configuration from the cache
      */
-    public func delete(_ imageConfiguration: ImageConfiguration) {
-        do {
-            try cache.delete(imageConfiguration.key)
-        } catch {
-            print("\(#function) - \(error.localizedDescription)")
-        }
+    public func delete(_ imageConfiguration: ImageConfiguration) throws {
+        try cache.delete(imageConfiguration.key)
     }
 
-    public func cache(_ image: UIImage, key: Keyable) {
-        // cache image data, if fails only print error
-        do {
-            guard let data = image.pngData() else {
-                print("\(#function) - Could not convert image to PNG")
-                return
-            }
-
-            try self.cache.cache(data, key: key.key)
-        } catch {
-            print("\(#function) - \(error.localizedDescription)")
+    public func cache(_ image: UIImage, key: Keyable) throws {
+        guard let data = image.pngData() else {
+            throw NSError(domain: "ImageFetcher.mobelux.com", code: 500, userInfo: [NSLocalizedDescriptionKey: "Could not convert image to PNG"])
         }
+
+        try self.cache.cache(data, key: key.key)
     }
 
     public func load(image key: Keyable) -> UIImage? {
@@ -154,7 +144,11 @@ private extension ImageFetcher {
                         return .error(.cannotParse)
                     }
 
-                    sself.cache(editedImage, key: task.configuration)
+                    do {
+                        try sself.cache(editedImage, key: task.configuration)
+                    } catch {
+                        return .error(ImageError.custom(error.localizedDescription))
+                    }
 
                     return .success(.downloaded(editedImage))
                 case .error(let error):

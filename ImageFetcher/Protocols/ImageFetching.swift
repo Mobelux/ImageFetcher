@@ -12,7 +12,8 @@ public protocol ImageFetching {
     func task(_ imageConfiguration: ImageConfiguration, handler: @escaping (ImageFetcherTask) -> ())
     func load(_ imageConfiguration: ImageConfiguration, handler: ImageHandler?)
     func clear(_ imageConfiguration: ImageConfiguration)
-    func delete(_ imageConfiguration: ImageConfiguration)
+    func cache(_ image: UIImage, key: Keyable) throws
+    func delete(_ imageConfiguration: ImageConfiguration) throws
 
     subscript (_ imageConfiguration: ImageConfiguration) -> ImageFetcherTask? { get }
 }
