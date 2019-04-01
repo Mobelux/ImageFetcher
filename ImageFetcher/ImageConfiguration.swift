@@ -12,7 +12,7 @@ import QuartzCore
 /*
  The set of parameters the `ImageLoader` uses to download an image.
  */
-public struct ImageConfiguration {
+public struct ImageConfiguration: Hashable {
     public let url: URL
     public let size: CGSize?
     public let constrain: Bool
@@ -25,16 +25,6 @@ public struct ImageConfiguration {
         self.constrain = constrain
         self.cornerRadius = cornerRadius
         self.scale = scale
-    }
-}
-
-extension ImageConfiguration: Equatable {
-    static public func == (lhs: ImageConfiguration, rhs: ImageConfiguration) -> Bool {
-        return lhs.url == rhs.url &&
-        lhs.size == rhs.size &&
-        lhs.constrain == rhs.constrain &&
-        lhs.cornerRadius == rhs.cornerRadius &&
-        lhs.scale == rhs.scale
     }
 }
 

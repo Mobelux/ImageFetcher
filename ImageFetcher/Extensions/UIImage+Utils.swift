@@ -20,7 +20,7 @@ public extension UIImage {
         }
     }
 
-    public func rounded(_ radius: CGFloat, scale: CGFloat = 1.0) -> UIImage? {
+    func rounded(_ radius: CGFloat, scale: CGFloat = 1.0) -> UIImage? {
         defer {
             UIGraphicsEndImageContext()
         }
@@ -39,7 +39,7 @@ public extension UIImage {
         return UIGraphicsGetImageFromCurrentImageContext()
     }
 
-    public func resize(_ size: CGSize, constrain: Bool = false, cornerRadius: CGFloat = 0, scale: CGFloat = 1.0) -> UIImage? {
+    func resize(_ size: CGSize, constrain: Bool = false, cornerRadius: CGFloat = 0, scale: CGFloat = 1.0) -> UIImage? {
         if size.width.isNaN || size.height.isNaN {
             return nil
         }
@@ -63,7 +63,7 @@ public extension UIImage {
         return UIGraphicsGetImageFromCurrentImageContext()
     }
 
-    public func edit(configuration: ImageConfiguration) -> UIImage? {
+    func edit(configuration: ImageConfiguration) -> UIImage? {
         guard configuration.size != nil || configuration.cornerRadius > 0 else {
             return self
         }
@@ -71,7 +71,7 @@ public extension UIImage {
         return resize(configuration.size ?? size, constrain: configuration.constrain, cornerRadius: CGFloat(configuration.cornerRadius), scale: CGFloat(configuration.scale))
     }
 
-    public func decompressed() -> UIImage? {
+    func decompressed() -> UIImage? {
         guard let imageRef = cgImage, let context = CGContext.init(data: nil,
                                      width: imageRef.width,
                                      height: imageRef.height,

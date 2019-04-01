@@ -46,7 +46,7 @@ extension ImageFetcherTask: Equatable {
 }
 
 extension ImageFetcherTask: Hashable {
-    public var hashValue: Int {
-        return configuration.key.hashValue
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(configuration)
     }
 }

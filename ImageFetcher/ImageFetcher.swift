@@ -106,7 +106,7 @@ extension ImageFetcher {
     public func cache(_ image: UIImage, key: Keyable) {
         // cache image data, if fails only print error
         do {
-            guard let data = UIImagePNGRepresentation(image) else {
+            guard let data = image.pngData() else {
                 print("\(#function) - Could not convert image to PNG")
                 return
             }
