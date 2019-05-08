@@ -16,7 +16,7 @@ public final class ImageFetcher: ImageFetching {
     private var tasks: Set<ImageFetcherTask> = []
     private var workerQueue = DispatchQueue.global()
 
-    public init(_ queue: Queue = OperationQueue(), cache: Cache = try! DiskCache(storageType: .temporary("images")), maxConcurrent: Int = 2) {
+    public init(_ cache: Cache, queue: Queue = OperationQueue(), maxConcurrent: Int = 2) {
         self.cache = cache
         self.queue = queue
 
