@@ -131,7 +131,7 @@ private extension ImageFetcher {
 
             // grab the operation's result
             guard let result = soperation.result else {
-                task.result = .error(.noResult)
+                task.result = .failure(.noResult)
                 return
             }
 
@@ -141,18 +141,18 @@ private extension ImageFetcher {
                 // data was successfully downloaded
                 case .success(let data):
                     guard let image = UIImage(data: data), let editedImage = image.edit(configuration: task.configuration) else {
-                        return .error(.cannotParse)
+                        return .failure(.cannotParse)
                     }
 
                     do {
                         try sself.cache(editedImage, key: task.configuration)
                     } catch {
-                        return .error(ImageError.custom(error.localizedDescription))
+                        return .failure(ImageError.custom(error.localizedDescription))
                     }
 
                     return .success(.downloaded(editedImage))
-                case .error(let error):
-                    return .error(ImageError.convertFrom(error))
+                case .failure(let error):
+                    return .failure(ImageError.convertFrom(error))
                 }
             }()
 
