@@ -92,6 +92,10 @@ public final class ImageFetcher: ImageFetching {
 }
 
 extension ImageFetcher {
+    public func deleteCache() throws {
+        try cache.deleteAll()
+    }
+
     /*
      Deletes image configuration from the cache
      */
