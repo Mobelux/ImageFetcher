@@ -1,0 +1,25 @@
+{
+  "object": {
+    "pins": [
+      {
+        "package": "DataOperation",
+        "repositoryURL": "git@github.com:Mobelux/DataOperation.git",
+        "state": {
+          "branch": null,
+          "revision": "bcafb921c95579aff519f59bf9ec524e45e0695c",
+          "version": "1.1.0"
+        }
+      },
+      {
+        "package": "DiskCache",
+        "repositoryURL": "git@github.com:Mobelux/DiskCache.git",
+        "state": {
+          "branch": null,
+          "revision": "b97e3547e108e36f4570a89e5d81976b72591fff",
+          "version": "1.1.0"
+        }
+      }
+    ]
+  },
+  "version": 1
+}
