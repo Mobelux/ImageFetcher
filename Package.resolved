@@ -3,7 +3,7 @@
     "pins": [
       {
         "package": "DataOperation",
-        "repositoryURL": "git@github.com:Mobelux/DataOperation.git",
+        "repositoryURL": "https://4d292b0f26f1c9affe7db75b52f11c893af22499:x-oauth-basic@github.com/Mobelux/DataOperation.git",
         "state": {
           "branch": null,
           "revision": "bcafb921c95579aff519f59bf9ec524e45e0695c",
@@ -12,7 +12,7 @@
       },
       {
         "package": "DiskCache",
-        "repositoryURL": "git@github.com:Mobelux/DiskCache.git",
+        "repositoryURL": "https://4d292b0f26f1c9affe7db75b52f11c893af22499:x-oauth-basic@github.com/Mobelux/DiskCache.git",
         "state": {
           "branch": null,
           "revision": "b97e3547e108e36f4570a89e5d81976b72591fff",
