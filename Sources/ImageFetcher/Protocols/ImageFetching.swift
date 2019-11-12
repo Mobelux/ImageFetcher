@@ -6,7 +6,7 @@
 //  Copyright © 2018 Neighborhood Goods. All rights reserved.
 //
 
-import Foundation
+import UIKit
 
 public protocol ImageFetching {
     func task(_ imageConfiguration: ImageConfiguration, handler: @escaping (ImageFetcherTask) -> ())
