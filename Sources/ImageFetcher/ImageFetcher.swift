@@ -30,8 +30,8 @@ import DataOperation
 import DiskCache
 
 public final class ImageFetcher: ImageFetching {
+    internal var cache: Cache
     private var queue: Queue
-    private var cache: Cache
     private var tasks: Set<ImageFetcherTask> = []
     private var workerQueue = DispatchQueue.global()
 
@@ -45,11 +45,13 @@ public final class ImageFetcher: ImageFetching {
     /// Builds a `ImageLoaderTask`. If the result of the image configuration is cached, `handler` will be called immediately. Otherwise a download operation will be kicked off
     /// - Parameters:
     ///   - imageConfiguration: The configuation of the image to be downloaded.
-    ///   - handler: The handler which passes in an `ImageLoaderTask`
+    ///   - handler: The handler which passes in an `ImageLoaderTask`. Always call on the main thread.
     public func task(_ imageConfiguration: ImageConfiguration, handler: @escaping (ImageFetcherTask) -> ()) {
         Task {
             let imageTask = await task(imageConfiguration)
-            handler(imageTask)
+            await MainActor.run {
+                handler(imageTask)
+            }
         }
     }
 
@@ -67,16 +69,14 @@ public final class ImageFetcher: ImageFetching {
                             configuration: imageConfiguration,
                             result: .success(.cached(image))))
                 } else {
-                    DispatchQueue.main.async {
-                        let operation = DataOperation(request: URLRequest(url: imageConfiguration.url))
-                        operation.name = imageConfiguration.key
+                    let operation = DataOperation(request: URLRequest(url: imageConfiguration.url))
+                    operation.name = imageConfiguration.key
 
-                        let task = ImageFetcherTask(configuration: imageConfiguration, operation: operation)
-                        operation.completionBlock = self.completion(task: task)
-                        self.queue.addOperation(operation)
+                    let task = ImageFetcherTask(configuration: imageConfiguration, operation: operation)
+                    operation.completionBlock = completion(task: task)
+                    queue.addOperation(operation)
 
-                        continuation.resume(returning: task)
-                    }
+                    continuation.resume(returning: task)
                 }
             }
         }
@@ -85,11 +85,13 @@ public final class ImageFetcher: ImageFetching {
     /// Loads the `ImageConfiguration`. If the result of the image configuration is cached, `handler` will be called immediately. Otherwise a download operation will be kicked off.
     /// - Parameters:
     ///   - imageConfiguration: The configuation of the image to be downloaded.
-    ///   - handler: The handler which passes in an `ImageHandler`
+    ///   - handler: The handler which passes in an `ImageHandler`. Always called on the main thread.
     public func load(_ imageConfiguration: ImageConfiguration, handler: ImageHandler?) {
         Task {
             let imageResult = await load(imageConfiguration)
-            handler?(imageResult)
+            await MainActor.run {
+                handler?(imageResult)
+            }
         }
     }
 
@@ -115,6 +117,8 @@ public final class ImageFetcher: ImageFetching {
         }
     }
 
+    /// Cancels an in-flight image load
+    /// - Parameter imageConfiguration: The configuation of the image to be downloaded.
     public func cancel(_ imageConfiguration: ImageConfiguration) {
         guard let task = self[imageConfiguration] else {
             return
@@ -134,31 +138,43 @@ public final class ImageFetcher: ImageFetching {
     }
 }
 
-extension ImageFetcher {
-    public func deleteCache() throws {
+public extension ImageFetcher {
+
+    /// Deletes all images in the cache
+    func deleteCache() throws {
         try cache.deleteAll()
     }
 
-    /*
-     Deletes image configuration from the cache
-     */
-    public func delete(_ imageConfiguration: ImageConfiguration) throws {
+    /// Deletes image from the cache
+    /// - Parameter imageConfiguration: The configuation of the image to be deleted.
+    func delete(_ imageConfiguration: ImageConfiguration) throws {
         try cache.delete(imageConfiguration.key)
     }
 
-    public func cache(_ image: UIImage, key: Keyable) throws {
+    /// Saves in image to the cache
+    /// - Parameters:
+    ///   - image: The image instance
+    ///   - key: The configuation of the image to be saved.
+    func cache(_ image: UIImage, key: ImageConfiguration) throws {
         guard let data = image.pngData() else {
-            throw NSError(domain: "ImageFetcher.mobelux.com", code: 500, userInfo: [NSLocalizedDescriptionKey: "Could not convert image to PNG"])
+            throw NSError(
+                domain: "ImageFetcher.mobelux.com",
+                code: 500,
+                userInfo: [NSLocalizedDescriptionKey: "Could not convert image to PNG"])
         }
 
         try self.cache.cache(data, key: key.key)
     }
 
-    public func load(image key: Keyable) -> UIImage? {
+    /// Loads an image from the cache.
+    /// - Parameter key: The configuation of the image to load.
+    /// - Returns:An image instance that has been previously cached. Nil if not found.
+    func load(image key: ImageConfiguration) -> UIImage? {
         do {
-            guard let cachedData = try? self.cache.data(key.key), let image = UIImage(data: cachedData) else {
-                return nil
-            }
+            guard let cachedData = try? self.cache.data(key.key),
+                  let image = UIImage(data: cachedData)?.decompressed() else {
+                      return nil
+                  }
 
             return image
         }
