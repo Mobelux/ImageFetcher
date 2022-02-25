@@ -42,51 +42,75 @@ public final class ImageFetcher: ImageFetching {
         self.queue.maxConcurrentOperationCount = maxConcurrent
     }
 
-    /**
-     Builds a `ImageLoaderTask`. If the result of the image configuration is cached, `handler` will be called immediately.
-     Otherwise a download operation will be kicked off
-
-     - parameters:
-     - imageConfiguration: The configuation of the image to be installed.
-     - handler: The handler which passes in an `ImageLoaderTask`
-
-     */
+    /// Builds a `ImageLoaderTask`. If the result of the image configuration is cached, `handler` will be called immediately. Otherwise a download operation will be kicked off
+    /// - Parameters:
+    ///   - imageConfiguration: The configuation of the image to be downloaded.
+    ///   - handler: The handler which passes in an `ImageLoaderTask`
     public func task(_ imageConfiguration: ImageConfiguration, handler: @escaping (ImageFetcherTask) -> ()) {
-        workerQueue.async {
-            // if data is cached, use it, else use `DataOperation` to fetch image data
-            if let cachedData = try? self.cache.data(imageConfiguration.key), let image = UIImage(data: cachedData)?.decompressed() {
-                handler(ImageFetcherTask(configuration: imageConfiguration, result: .success(.cached(image))))
-            } else {
-                DispatchQueue.main.async {
-                    let operation = DataOperation(request: URLRequest(url: imageConfiguration.url))
-                    operation.name = imageConfiguration.key
+        Task {
+            let imageTask = await task(imageConfiguration)
+            handler(imageTask)
+        }
+    }
 
-                    let task = ImageFetcherTask(configuration: imageConfiguration, operation: operation)
-                    operation.completionBlock = self.completion(task: task)
-                    self.queue.addOperation(operation)
+    /// Builds a `ImageLoaderTask`. If the result of the image configuration is cached, the task will be returned immediately. Otherwise a download operation will be kicked off.
+    /// - Parameter imageConfiguration: The configuation of the image to be downloaded.
+    /// - Returns: An instance of `ImageLoaderTask`. Be sure to check `result` before adding a handler.
+    public func task(_ imageConfiguration: ImageConfiguration) async -> ImageFetcherTask {
+        await withCheckedContinuation { continuation in
+            workerQueue.sync {
+                // if data is cached, use it, else use `DataOperation` to fetch image data
+                if let cachedData = try? self.cache.data(imageConfiguration.key),
+                   let image = UIImage(data: cachedData)?.decompressed() {
+                    continuation.resume(
+                        returning: ImageFetcherTask(
+                            configuration: imageConfiguration,
+                            result: .success(.cached(image))))
+                } else {
+                    DispatchQueue.main.async {
+                        let operation = DataOperation(request: URLRequest(url: imageConfiguration.url))
+                        operation.name = imageConfiguration.key
 
-                    handler(task)
+                        let task = ImageFetcherTask(configuration: imageConfiguration, operation: operation)
+                        operation.completionBlock = self.completion(task: task)
+                        self.queue.addOperation(operation)
+
+                        continuation.resume(returning: task)
+                    }
                 }
             }
         }
     }
 
-    /**
-     Loads the `ImageConfiguration`. If the result of the image configuration is cached, `handler` will be called immediately.
-     Otherwise a download operation will be kicked off
-
-     - parameters:
-     - imageConfiguration: The configuation of the image to be installed.
-     - handler: The handler which passes in an `ImageHandler`
-
-     */
+    /// Loads the `ImageConfiguration`. If the result of the image configuration is cached, `handler` will be called immediately. Otherwise a download operation will be kicked off.
+    /// - Parameters:
+    ///   - imageConfiguration: The configuation of the image to be downloaded.
+    ///   - handler: The handler which passes in an `ImageHandler`
     public func load(_ imageConfiguration: ImageConfiguration, handler: ImageHandler?) {
-        task(imageConfiguration) { [unowned self] task in
-            if let result = task.result {
-                handler?(result)
-            } else {
-                task.handler = handler
-                self.tasks.insert(task)
+        Task {
+            let imageResult = await load(imageConfiguration)
+            handler?(imageResult)
+        }
+    }
+
+
+    /// Loads the `ImageConfiguration`. If the result of the image configuration is cached, the result will be returned immediately. Otherwise a download operation will be kicked off.
+    /// - Parameter imageConfiguration: The configuation of the image to be downloaded.
+    /// - Returns: The result of the image load.
+    public func load(_ imageConfiguration: ImageConfiguration) async -> ImageResult {
+        let imageTask = await task(imageConfiguration)
+
+        return await withCheckedContinuation { (continuation: CheckedContinuation<ImageResult, Never>) -> Void in
+            workerQueue.sync {
+                if let result = imageTask.result {
+                    continuation.resume(returning: result)
+                } else {
+                    imageTask.handler = { result in
+                        continuation.resume(returning: result)
+                    }
+
+                    tasks.insert(imageTask)
+                }
             }
         }
     }
