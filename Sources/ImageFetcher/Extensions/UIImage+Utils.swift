@@ -87,21 +87,41 @@ public extension UIImage {
             return self
         }
 
-        return resize(configuration.size ?? size, constrain: configuration.constrain, cornerRadius: CGFloat(configuration.cornerRadius), scale: CGFloat(configuration.scale))
+        return resize(
+            configuration.size ?? size,
+            constrain: configuration.constrain,
+            cornerRadius: CGFloat(configuration.cornerRadius),
+            scale: CGFloat(configuration.scale))
     }
 
     func decompressed() -> UIImage? {
-        guard let imageRef = cgImage, let context = CGContext.init(data: nil,
-                                     width: imageRef.width,
-                                     height: imageRef.height,
-                                     bitsPerComponent: 8,
-                                     bytesPerRow: imageRef.width * 4,
-                                     space: CGColorSpaceCreateDeviceRGB(),
-                                     bitmapInfo: CGImageAlphaInfo.premultipliedFirst.rawValue | CGBitmapInfo.byteOrder32Little.rawValue) else { return nil }
+        guard let imageRef = cgImage,
+              let context = CGContext(
+                data: nil,
+                width: imageRef.width,
+                height: imageRef.height,
+                bitsPerComponent: 8,
+                bytesPerRow: imageRef.width * 4,
+                space: CGColorSpaceCreateDeviceRGB(),
+                bitmapInfo: CGImageAlphaInfo.premultipliedFirst.rawValue | CGBitmapInfo.byteOrder32Little.rawValue)
+        else { return nil }
 
-        let rect = CGRect(origin: .zero, size: CGSize(width: imageRef.width, height: imageRef.height))
+        let rect = CGRect(
+            origin: .zero,
+            size: CGSize(
+                width: imageRef.width,
+                height: imageRef.height)
+        )
+
         context.draw(imageRef, in: rect)
 
-        return context.makeImage().flatMap { UIImage(cgImage: $0, scale: scale, orientation: .up) }
+        return context
+            .makeImage()
+            .flatMap {
+                UIImage(
+                    cgImage: $0,
+                    scale: scale,
+                    orientation: .up)
+            }
     }
 }

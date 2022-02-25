@@ -91,7 +91,7 @@ public final class ImageFetcher: ImageFetching {
         }
     }
 
-    public func clear(_ imageConfiguration: ImageConfiguration) {
+    public func cancel(_ imageConfiguration: ImageConfiguration) {
         guard let task = self[imageConfiguration] else {
             return
         }
@@ -159,7 +159,7 @@ private extension ImageFetcher {
             }
 
             // convert data result to image result
-            let imageResult: Result<ResultType<UIImage>, ImageError> = {
+            let imageResult: ImageResult = {
                 switch result {
                 // data was successfully downloaded
                 case .success(let data):
