@@ -1,5 +1,5 @@
 //
-//  ResponseType.swift
+//  ResultType.swift
 //  Mobelux
 //
 //  MIT License

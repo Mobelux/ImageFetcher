@@ -1,6 +1,6 @@
 //
 //  CGSize+Hashable.swift
-//  ImageFetcher
+//  Mobelux
 //
 //  MIT License
 //

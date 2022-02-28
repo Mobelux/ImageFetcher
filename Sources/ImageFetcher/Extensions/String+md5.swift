@@ -1,6 +1,6 @@
 //
 //  String+md5.swift
-//  ImageFetcher
+//  Mobelux
 //
 //  MIT License
 //

@@ -1,5 +1,6 @@
 //
 //  ImageFetcher+Deprecated.swift
+//  Mobelux
 //  
 //  MIT License
 //
