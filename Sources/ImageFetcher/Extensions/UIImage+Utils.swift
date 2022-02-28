@@ -50,54 +50,58 @@ public extension Image {
         }
     }
 
-    func decompressed(_ newSize: CGSize? = nil, constrain: Bool = false, cornerRadius: CGFloat = 0, scale: CGFloat = 1.0) -> Image? {
-        let operatingSize = newSize ?? size
-        let finalSize = constrain ? sizeFittingSize(operatingSize, size: size) : operatingSize
+    func decompressed(
+        _ newSize: CGSize? = nil,
+        constrain: Bool = false,
+        cornerRadius: CGFloat = 0,
+        scale: CGFloat = 1.0) -> Image? {
+            let operatingSize = newSize ?? size
+            let finalSize = constrain ? sizeFittingSize(operatingSize, size: size) : operatingSize
 
-        guard let imageRef = cgImage,
-              let context = CGContext(
-                data: nil,
-                width: imageRef.width,
-                height: imageRef.height,
-                bitsPerComponent: 8,
-                bytesPerRow: imageRef.width * 4,
-                space: CGColorSpaceCreateDeviceRGB(),
-                bitmapInfo: CGImageAlphaInfo.premultipliedFirst.rawValue | CGBitmapInfo.byteOrder32Little.rawValue)
-        else { return nil }
+            guard let imageRef = cgImage,
+                  let context = CGContext(
+                    data: nil,
+                    width: Int(finalSize.width),
+                    height: Int(finalSize.height),
+                    bitsPerComponent: 8,
+                    bytesPerRow: Int(finalSize.width) * 4,
+                    space: CGColorSpaceCreateDeviceRGB(),
+                    bitmapInfo: CGImageAlphaInfo.premultipliedFirst.rawValue | CGBitmapInfo.byteOrder32Little.rawValue)
+            else { return nil }
 
-        let rect = CGRect(
-            origin: .zero,
-            size: finalSize
-        )
+            let rect = CGRect(
+                origin: .zero,
+                size: finalSize
+            )
 
-        if cornerRadius > 0 {
-            let path = CGPath(
-                roundedRect: rect,
-                cornerWidth: cornerRadius,
-                cornerHeight: cornerRadius,
-                transform: nil)
+            if cornerRadius > 0 {
+                let path = CGPath(
+                    roundedRect: rect,
+                    cornerWidth: cornerRadius,
+                    cornerHeight: cornerRadius,
+                    transform: nil)
 
-            context.addPath(path)
-            context.clip()
-        }
-
-        context.draw(imageRef, in: rect)
-
-        return context
-            .makeImage()
-            .flatMap {
-            #if os(macOS)
-                NSImage(
-                    cgImage: $0,
-                    size: rect.size)
-            #else
-                UIImage(
-                    cgImage: $0,
-                    scale: scale,
-                    orientation: .up)
-            #endif
+                context.addPath(path)
+                context.clip()
             }
-    }
+
+            context.draw(imageRef, in: rect)
+
+            return context
+                .makeImage()
+                .flatMap {
+                    #if os(macOS)
+                    NSImage(
+                        cgImage: $0,
+                        size: rect.size)
+                    #else
+                    UIImage(
+                        cgImage: $0,
+                        scale: scale,
+                        orientation: .up)
+                    #endif
+                }
+        }
 
     func edit(configuration: ImageConfiguration) -> Image? {
         guard configuration.size != nil || configuration.cornerRadius > 0 else {
