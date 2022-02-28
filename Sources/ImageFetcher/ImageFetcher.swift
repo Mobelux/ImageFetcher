@@ -90,7 +90,7 @@ public extension ImageFetcher {
     /// - Parameter imageConfiguration: The configuation of the image to be downloaded.
     /// - Returns: An instance of `ImageLoaderTask`. Be sure to check `result` before adding a handler.
     func task(_ imageConfiguration: ImageConfiguration) async -> ImageFetcherTask {
-        await withCheckedContinuation { continuation in
+        await withUnsafeContinuation { continuation in
             workerQueue.sync {
                 // if data is cached, use it, else use `DataOperation` to fetch image data
                 if let cachedData = try? cache.syncData(imageConfiguration.key),
@@ -147,7 +147,7 @@ public extension ImageFetcher {
     func load(_ imageConfiguration: ImageConfiguration) async -> ImageResult {
         let imageTask = await task(imageConfiguration)
 
-        return await withCheckedContinuation { (continuation: CheckedContinuation<ImageResult, Never>) -> Void in
+        return await withUnsafeContinuation { (continuation: UnsafeContinuation<ImageResult, Never>) -> Void in
             workerQueue.sync {
                 if let result = imageTask.result {
                     continuation.resume(returning: result)
