@@ -54,12 +54,15 @@ public final class ImageFetcher: ImageFetching {
 
         self.queue.maxConcurrentOperationCount = maxConcurrent
     }
+}
 
+// MARK: - Public API Methods
+public extension ImageFetcher {
     /// Builds a `ImageLoaderTask`. If the result of the image configuration is cached, `handler` will be called immediately. Otherwise a download operation will be kicked off
     /// - Parameters:
     ///   - url: The url of the image to be downloaded.
     ///   - handler: The handler which passes in an `ImageLoaderTask`. Always call on the main thread.
-    public func task(_ url: URL, handler: @escaping (ImageFetcherTask) -> ()) {
+    func task(_ url: URL, handler: @escaping (ImageFetcherTask) -> ()) {
         task(ImageConfiguration(url: url), handler: handler)
     }
 
@@ -67,7 +70,7 @@ public final class ImageFetcher: ImageFetching {
     /// - Parameters:
     ///   - imageConfiguration: The configuation of the image to be downloaded.
     ///   - handler: The handler which passes in an `ImageLoaderTask`. Always call on the main thread.
-    public func task(_ imageConfiguration: ImageConfiguration, handler: @escaping (ImageFetcherTask) -> ()) {
+    func task(_ imageConfiguration: ImageConfiguration, handler: @escaping (ImageFetcherTask) -> ()) {
         Task {
             let imageTask = await task(imageConfiguration)
             await MainActor.run {
@@ -79,14 +82,14 @@ public final class ImageFetcher: ImageFetching {
     /// Builds a `ImageLoaderTask`. If the result of the image configuration is cached, the task will be returned immediately. Otherwise a download operation will be kicked off.
     /// - Parameter url: The url of the image to be downloaded.
     /// - Returns: An instance of `ImageLoaderTask`. Be sure to check `result` before adding a handler.
-    public func task(_ url: URL) async -> ImageFetcherTask {
+    func task(_ url: URL) async -> ImageFetcherTask {
         await task(ImageConfiguration(url: url))
     }
 
     /// Builds a `ImageLoaderTask`. If the result of the image configuration is cached, the task will be returned immediately. Otherwise a download operation will be kicked off.
     /// - Parameter imageConfiguration: The configuation of the image to be downloaded.
     /// - Returns: An instance of `ImageLoaderTask`. Be sure to check `result` before adding a handler.
-    public func task(_ imageConfiguration: ImageConfiguration) async -> ImageFetcherTask {
+    func task(_ imageConfiguration: ImageConfiguration) async -> ImageFetcherTask {
         await withCheckedContinuation { continuation in
             workerQueue.sync {
                 // if data is cached, use it, else use `DataOperation` to fetch image data
@@ -114,7 +117,7 @@ public final class ImageFetcher: ImageFetching {
     /// - Parameters:
     ///   - url: The url of the image to be downloaded.
     ///   - handler: The handler which passes in an `ImageHandler`. Always called on the main thread.
-    public func load(_ url: URL, handler: ImageHandler?) {
+    func load(_ url: URL, handler: ImageHandler?) {
         load(ImageConfiguration(url: url), handler: handler)
     }
 
@@ -122,7 +125,7 @@ public final class ImageFetcher: ImageFetching {
     /// - Parameters:
     ///   - imageConfiguration: The configuation of the image to be downloaded.
     ///   - handler: The handler which passes in an `ImageHandler`. Always called on the main thread.
-    public func load(_ imageConfiguration: ImageConfiguration, handler: ImageHandler?) {
+    func load(_ imageConfiguration: ImageConfiguration, handler: ImageHandler?) {
         Task {
             let imageResult = await load(imageConfiguration)
             await MainActor.run {
@@ -134,14 +137,14 @@ public final class ImageFetcher: ImageFetching {
     /// Loads the `ImageConfiguration`. If the result of the image configuration is cached, the result will be returned immediately. Otherwise a download operation will be kicked off.
     /// - Parameter url: The url of the image to be downloaded.
     /// - Returns: The result of the image load.
-    public func load(_ url: URL) async -> ImageResult {
+    func load(_ url: URL) async -> ImageResult {
         await load(ImageConfiguration(url: url))
     }
 
     /// Loads the `ImageConfiguration`. If the result of the image configuration is cached, the result will be returned immediately. Otherwise a download operation will be kicked off.
     /// - Parameter imageConfiguration: The configuation of the image to be downloaded.
     /// - Returns: The result of the image load.
-    public func load(_ imageConfiguration: ImageConfiguration) async -> ImageResult {
+    func load(_ imageConfiguration: ImageConfiguration) async -> ImageResult {
         let imageTask = await task(imageConfiguration)
 
         return await withCheckedContinuation { (continuation: CheckedContinuation<ImageResult, Never>) -> Void in
@@ -161,13 +164,13 @@ public final class ImageFetcher: ImageFetching {
 
     /// Cancels an in-flight image load
     /// - Parameter url: The url of the image to be downloaded.
-    public func cancel(_ url: URL) {
+    func cancel(_ url: URL) {
         cancel(ImageConfiguration(url: url))
     }
 
     /// Cancels an in-flight image load
     /// - Parameter imageConfiguration: The configuation of the image to be downloaded.
-    public func cancel(_ imageConfiguration: ImageConfiguration) {
+    func cancel(_ imageConfiguration: ImageConfiguration) {
         guard let task = self[imageConfiguration] else {
             return
         }
@@ -179,18 +182,15 @@ public final class ImageFetcher: ImageFetching {
         tasks.remove(task)
     }
 
-    public subscript (_ url: URL) -> ImageFetcherTask? {
+    subscript (_ url: URL) -> ImageFetcherTask? {
         self[ImageConfiguration(url: url)]
     }
 
-    public subscript (_ imageConfiguration: ImageConfiguration) -> ImageFetcherTask? {
+    subscript (_ imageConfiguration: ImageConfiguration) -> ImageFetcherTask? {
         tasks.first(where: { (task) -> Bool in
             task.configuration == imageConfiguration
         })
     }
-}
-
-public extension ImageFetcher {
 
     /// Deletes all images in the cache
     func deleteCache() throws {
@@ -254,6 +254,7 @@ public extension ImageFetcher {
     }
 }
 
+// MARK: - Private Methods
 private extension ImageFetcher {
     func completion(task: ImageFetcherTask) -> (() -> ()) {
         guard let operation = task.operation else {
