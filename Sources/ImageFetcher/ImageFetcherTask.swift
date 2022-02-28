@@ -25,10 +25,14 @@
 //  SOFTWARE.
 //
 
+#if os(macOS)
+import AppKit
+#else
 import UIKit
+#endif
 import DataOperation
 
-public typealias ImageResult = Result<ResultType<UIImage>, ImageError>
+public typealias ImageResult = Result<ResultType<Image>, ImageError>
 public typealias ImageHandler = (ImageResult) -> ()
 
 public final class ImageFetcherTask {

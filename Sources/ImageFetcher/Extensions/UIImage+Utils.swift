@@ -25,9 +25,20 @@
 //  SOFTWARE.
 //
 
-import UIKit
+#if os(macOS)
+import AppKit
 
-public extension UIImage {
+extension NSImage {
+    var cgImage: CGImage? {
+        var rect = CGRect.init(origin: .zero, size: size)
+        return cgImage(forProposedRect: &rect, context: nil, hints: nil)
+    }
+}
+#else
+import UIKit
+#endif
+
+public extension Image {
     private func sizeFittingSize(_ maxSize: CGSize, size: CGSize) -> CGSize {
         let originalAspectRatio = size.width / size.height
         if size.width > size.height {
@@ -39,62 +50,10 @@ public extension UIImage {
         }
     }
 
-    func rounded(_ radius: CGFloat, scale: CGFloat = 1.0) -> UIImage? {
-        defer {
-            UIGraphicsEndImageContext()
-        }
+    func decompressed(_ newSize: CGSize? = nil, constrain: Bool = false, cornerRadius: CGFloat = 0, scale: CGFloat = 1.0) -> Image? {
+        let operatingSize = newSize ?? size
+        let finalSize = constrain ? sizeFittingSize(operatingSize, size: size) : operatingSize
 
-        UIGraphicsBeginImageContextWithOptions(size, false, scale)
-        guard let context = UIGraphicsGetCurrentContext() else {
-            return nil
-        }
-
-        let rect = CGRect(origin: .zero, size: size)
-        context.addPath(UIBezierPath(roundedRect: rect, cornerRadius: radius).cgPath)
-        context.clip()
-
-        draw(in: rect)
-
-        return UIGraphicsGetImageFromCurrentImageContext()
-    }
-
-    func resize(_ size: CGSize, constrain: Bool = false, cornerRadius: CGFloat = 0, scale: CGFloat = 1.0) -> UIImage? {
-        if size.width.isNaN || size.height.isNaN {
-            return nil
-        }
-
-        defer {
-            UIGraphicsEndImageContext()
-        }
-
-        let finalSize = constrain ? sizeFittingSize(size, size: self.size) : size
-        let rect = CGRect(origin: .zero, size: finalSize)
-
-        UIGraphicsBeginImageContextWithOptions(finalSize, false, scale)
-
-        if let context = UIGraphicsGetCurrentContext(), cornerRadius > 0 {
-            context.addPath(UIBezierPath(roundedRect: rect, cornerRadius: cornerRadius).cgPath)
-            context.clip()
-        }
-
-        draw(in: rect)
-
-        return UIGraphicsGetImageFromCurrentImageContext()
-    }
-
-    func edit(configuration: ImageConfiguration) -> UIImage? {
-        guard configuration.size != nil || configuration.cornerRadius > 0 else {
-            return self
-        }
-
-        return resize(
-            configuration.size ?? size,
-            constrain: configuration.constrain,
-            cornerRadius: CGFloat(configuration.cornerRadius),
-            scale: CGFloat(configuration.scale))
-    }
-
-    func decompressed() -> UIImage? {
         guard let imageRef = cgImage,
               let context = CGContext(
                 data: nil,
@@ -108,20 +67,47 @@ public extension UIImage {
 
         let rect = CGRect(
             origin: .zero,
-            size: CGSize(
-                width: imageRef.width,
-                height: imageRef.height)
+            size: finalSize
         )
+
+        if cornerRadius > 0 {
+            let path = CGPath(
+                roundedRect: rect,
+                cornerWidth: cornerRadius,
+                cornerHeight: cornerRadius,
+                transform: nil)
+
+            context.addPath(path)
+            context.clip()
+        }
 
         context.draw(imageRef, in: rect)
 
         return context
             .makeImage()
             .flatMap {
+            #if os(macOS)
+                NSImage(
+                    cgImage: $0,
+                    size: rect.size)
+            #else
                 UIImage(
                     cgImage: $0,
                     scale: scale,
                     orientation: .up)
+            #endif
             }
+    }
+
+    func edit(configuration: ImageConfiguration) -> Image? {
+        guard configuration.size != nil || configuration.cornerRadius > 0 else {
+            return self
+        }
+
+        return decompressed(
+            configuration.size ?? size,
+            constrain: configuration.constrain,
+            cornerRadius: CGFloat(configuration.cornerRadius),
+            scale: CGFloat(configuration.scale))
     }
 }

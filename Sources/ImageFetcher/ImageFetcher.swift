@@ -25,7 +25,20 @@
 //  SOFTWARE.
 //
 
+#if os(macOS)
+import AppKit
+
+extension NSImage {
+    func pngData() -> Data? {
+        guard let cgImage = cgImage else { return nil }
+
+        return NSBitmapImageRep(cgImage: cgImage)
+            .representation(using: .png, properties: [:])
+    }
+}
+#else
 import UIKit
+#endif
 import DataOperation
 import DiskCache
 
@@ -63,7 +76,7 @@ public final class ImageFetcher: ImageFetching {
             workerQueue.sync {
                 // if data is cached, use it, else use `DataOperation` to fetch image data
                 if let cachedData = try? self.cache.data(imageConfiguration.key),
-                   let image = UIImage(data: cachedData)?.decompressed() {
+                   let image = Image(data: cachedData)?.decompressed() {
                     continuation.resume(
                         returning: ImageFetcherTask(
                             configuration: imageConfiguration,
@@ -155,7 +168,7 @@ public extension ImageFetcher {
     /// - Parameters:
     ///   - image: The image instance
     ///   - key: The configuation of the image to be saved.
-    func cache(_ image: UIImage, key: ImageConfiguration) throws {
+    func cache(_ image: Image, key: ImageConfiguration) throws {
         guard let data = image.pngData() else {
             throw NSError(
                 domain: "ImageFetcher.mobelux.com",
@@ -169,10 +182,10 @@ public extension ImageFetcher {
     /// Loads an image from the cache.
     /// - Parameter key: The configuation of the image to load.
     /// - Returns:An image instance that has been previously cached. Nil if not found.
-    func load(image key: ImageConfiguration) -> UIImage? {
+    func load(image key: ImageConfiguration) -> Image? {
         do {
             guard let cachedData = try? self.cache.data(key.key),
-                  let image = UIImage(data: cachedData)?.decompressed() else {
+                  let image = Image(data: cachedData)?.decompressed() else {
                       return nil
                   }
 
@@ -203,7 +216,7 @@ private extension ImageFetcher {
                 switch result {
                 // data was successfully downloaded
                 case .success(let data):
-                    guard let image = UIImage(data: data), let editedImage = image.edit(configuration: task.configuration) else {
+                    guard let image = Image(data: data), let editedImage = image.edit(configuration: task.configuration) else {
                         return .failure(.cannotParse)
                     }
 
