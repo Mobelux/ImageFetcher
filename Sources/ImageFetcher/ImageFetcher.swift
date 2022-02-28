@@ -57,6 +57,14 @@ public final class ImageFetcher: ImageFetching {
 
     /// Builds a `ImageLoaderTask`. If the result of the image configuration is cached, `handler` will be called immediately. Otherwise a download operation will be kicked off
     /// - Parameters:
+    ///   - url: The url of the image to be downloaded.
+    ///   - handler: The handler which passes in an `ImageLoaderTask`. Always call on the main thread.
+    public func task(_ url: URL, handler: @escaping (ImageFetcherTask) -> ()) {
+        task(ImageConfiguration(url: url), handler: handler)
+    }
+
+    /// Builds a `ImageLoaderTask`. If the result of the image configuration is cached, `handler` will be called immediately. Otherwise a download operation will be kicked off
+    /// - Parameters:
     ///   - imageConfiguration: The configuation of the image to be downloaded.
     ///   - handler: The handler which passes in an `ImageLoaderTask`. Always call on the main thread.
     public func task(_ imageConfiguration: ImageConfiguration, handler: @escaping (ImageFetcherTask) -> ()) {
@@ -66,6 +74,13 @@ public final class ImageFetcher: ImageFetching {
                 handler(imageTask)
             }
         }
+    }
+
+    /// Builds a `ImageLoaderTask`. If the result of the image configuration is cached, the task will be returned immediately. Otherwise a download operation will be kicked off.
+    /// - Parameter url: The url of the image to be downloaded.
+    /// - Returns: An instance of `ImageLoaderTask`. Be sure to check `result` before adding a handler.
+    public func task(_ url: URL) async -> ImageFetcherTask {
+        await task(ImageConfiguration(url: url))
     }
 
     /// Builds a `ImageLoaderTask`. If the result of the image configuration is cached, the task will be returned immediately. Otherwise a download operation will be kicked off.
@@ -97,6 +112,14 @@ public final class ImageFetcher: ImageFetching {
 
     /// Loads the `ImageConfiguration`. If the result of the image configuration is cached, `handler` will be called immediately. Otherwise a download operation will be kicked off.
     /// - Parameters:
+    ///   - url: The url of the image to be downloaded.
+    ///   - handler: The handler which passes in an `ImageHandler`. Always called on the main thread.
+    public func load(_ url: URL, handler: ImageHandler?) {
+        load(ImageConfiguration(url: url), handler: handler)
+    }
+
+    /// Loads the `ImageConfiguration`. If the result of the image configuration is cached, `handler` will be called immediately. Otherwise a download operation will be kicked off.
+    /// - Parameters:
     ///   - imageConfiguration: The configuation of the image to be downloaded.
     ///   - handler: The handler which passes in an `ImageHandler`. Always called on the main thread.
     public func load(_ imageConfiguration: ImageConfiguration, handler: ImageHandler?) {
@@ -108,6 +131,12 @@ public final class ImageFetcher: ImageFetching {
         }
     }
 
+    /// Loads the `ImageConfiguration`. If the result of the image configuration is cached, the result will be returned immediately. Otherwise a download operation will be kicked off.
+    /// - Parameter url: The url of the image to be downloaded.
+    /// - Returns: The result of the image load.
+    public func load(_ url: URL) async -> ImageResult {
+        await load(ImageConfiguration(url: url))
+    }
 
     /// Loads the `ImageConfiguration`. If the result of the image configuration is cached, the result will be returned immediately. Otherwise a download operation will be kicked off.
     /// - Parameter imageConfiguration: The configuation of the image to be downloaded.
@@ -131,6 +160,12 @@ public final class ImageFetcher: ImageFetching {
     }
 
     /// Cancels an in-flight image load
+    /// - Parameter url: The url of the image to be downloaded.
+    public func cancel(_ url: URL) {
+        cancel(ImageConfiguration(url: url))
+    }
+
+    /// Cancels an in-flight image load
     /// - Parameter imageConfiguration: The configuation of the image to be downloaded.
     public func cancel(_ imageConfiguration: ImageConfiguration) {
         guard let task = self[imageConfiguration] else {
@@ -144,8 +179,12 @@ public final class ImageFetcher: ImageFetching {
         tasks.remove(task)
     }
 
+    public subscript (_ url: URL) -> ImageFetcherTask? {
+        self[ImageConfiguration(url: url)]
+    }
+
     public subscript (_ imageConfiguration: ImageConfiguration) -> ImageFetcherTask? {
-        return tasks.first(where: { (task) -> Bool in
+        tasks.first(where: { (task) -> Bool in
             task.configuration == imageConfiguration
         })
     }
@@ -159,9 +198,23 @@ public extension ImageFetcher {
     }
 
     /// Deletes image from the cache
+    /// - Parameter imageConfiguration: The url of the image to be deleted.
+    func delete(_ url: URL) throws {
+        try delete(ImageConfiguration(url: url))
+    }
+
+    /// Deletes image from the cache
     /// - Parameter imageConfiguration: The configuation of the image to be deleted.
     func delete(_ imageConfiguration: ImageConfiguration) throws {
         try cache.delete(imageConfiguration.key)
+    }
+
+    /// Saves in image to the cache
+    /// - Parameters:
+    ///   - image: The image instance
+    ///   - key: The url of the image to be saved.
+    func cache(_ image: Image, key: URL) throws {
+        try cache(image, key: ImageConfiguration(url: key))
     }
 
     /// Saves in image to the cache
@@ -177,6 +230,13 @@ public extension ImageFetcher {
         }
 
         try self.cache.cache(data, key: key.key)
+    }
+
+    /// Loads an image from the cache.
+    /// - Parameter key: The url of the image to load.
+    /// - Returns:An image instance that has been previously cached. Nil if not found.
+    func load(image key: URL) -> Image? {
+        load(image: ImageConfiguration(url: key))
     }
 
     /// Loads an image from the cache.
