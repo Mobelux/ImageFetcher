@@ -93,7 +93,7 @@ public extension ImageFetcher {
         await withCheckedContinuation { continuation in
             workerQueue.sync {
                 // if data is cached, use it, else use `DataOperation` to fetch image data
-                if let cachedData = try? self.cache.data(imageConfiguration.key),
+                if let cachedData = try? cache.syncData(imageConfiguration.key),
                    let image = Image(data: cachedData)?.decompressed() {
                     continuation.resume(
                         returning: ImageFetcherTask(
@@ -194,7 +194,7 @@ public extension ImageFetcher {
 
     /// Deletes all images in the cache
     func deleteCache() throws {
-        try cache.deleteAll()
+        try cache.syncDeleteAll()
     }
 
     /// Deletes image from the cache
@@ -206,7 +206,7 @@ public extension ImageFetcher {
     /// Deletes image from the cache
     /// - Parameter imageConfiguration: The configuation of the image to be deleted.
     func delete(_ imageConfiguration: ImageConfiguration) throws {
-        try cache.delete(imageConfiguration.key)
+        try cache.syncDelete(imageConfiguration.key)
     }
 
     /// Saves in image to the cache
@@ -229,7 +229,7 @@ public extension ImageFetcher {
                 userInfo: [NSLocalizedDescriptionKey: "Could not convert image to PNG"])
         }
 
-        try self.cache.cache(data, key: key.key)
+        try cache.syncCache(data, key: key.key)
     }
 
     /// Loads an image from the cache.
@@ -244,7 +244,7 @@ public extension ImageFetcher {
     /// - Returns:An image instance that has been previously cached. Nil if not found.
     func load(image key: ImageConfiguration) -> Image? {
         do {
-            guard let cachedData = try? self.cache.data(key.key),
+            guard let cachedData = try? cache.syncData(key.key),
                   let image = Image(data: cachedData)?.decompressed() else {
                       return nil
                   }

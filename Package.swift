@@ -20,7 +20,7 @@ let package = Package(
     dependencies: [
         // Dependencies declare other packages that this package depends on.
          .package(url: "https://github.com/Mobelux/DataOperation", from: "1.1.0"),
-         .package(url: "https://github.com/Mobelux/DiskCache", from: "1.1.0"),
+         .package(url: "https://github.com/Mobelux/DiskCache", from: "2.0.0"),
          .package(url: "https://github.com/apple/swift-crypto.git", from: "1.0.0")
     ],
     targets: [
