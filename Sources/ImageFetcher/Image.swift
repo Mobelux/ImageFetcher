@@ -1,10 +1,10 @@
 //
-//  ResultType.swift
+//  Image.swift
 //  Mobelux
-//
+//  
 //  MIT License
 //
-//  Copyright (c) 2020 Mobelux LLC
+//  Copyright (c) 2022 Mobelux LLC
 //
 //  Permission is hereby granted, free of charge, to any person obtaining a copy
 //  of this software and associated documentation files (the "Software"), to deal
@@ -25,18 +25,12 @@
 //  SOFTWARE.
 //
 
-import Foundation
+#if os(macOS)
+import AppKit
 
-public enum ResultType<T> {
-    case cached(T)
-    case downloaded(T)
+public typealias Image = NSImage
+#else
+import UIKit
 
-    public var value: T {
-        switch self {
-        case .cached(let value):
-            return value
-        case .downloaded(let value):
-            return value
-        }
-    }
-}
+public typealias Image = UIImage
+#endif

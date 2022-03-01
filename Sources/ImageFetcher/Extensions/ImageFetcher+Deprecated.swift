@@ -1,7 +1,7 @@
 //
-//  ResultType.swift
+//  ImageFetcher+Deprecated.swift
 //  Mobelux
-//
+//  
 //  MIT License
 //
 //  Copyright (c) 2020 Mobelux LLC
@@ -27,16 +27,9 @@
 
 import Foundation
 
-public enum ResultType<T> {
-    case cached(T)
-    case downloaded(T)
-
-    public var value: T {
-        switch self {
-        case .cached(let value):
-            return value
-        case .downloaded(let value):
-            return value
-        }
+public extension ImageFetcher {
+    @available(*, deprecated, renamed: "cancel(_:)")
+    func clear(_ imageConfiguration: ImageConfiguration) {
+        cancel(imageConfiguration)
     }
 }

@@ -25,17 +25,22 @@
 //  SOFTWARE.
 //
 
+#if os(macOS)
+import AppKit
+#else
 import UIKit
+#endif
 import DataOperation
 
-public typealias ImageHandler = (Result<ResultType<UIImage>, ImageError>) -> ()
+public typealias ImageResult = Result<ResultType<Image>, ImageError>
+public typealias ImageHandler = (ImageResult) -> ()
 
 public final class ImageFetcherTask {
     var operation: DataOperation?
 
     public var handler: ImageHandler?
     public var configuration: ImageConfiguration
-    public var result: Result<ResultType<UIImage>, ImageError>? {
+    public var result: ImageResult? {
         didSet {
             guard let result = result else {
                 return
@@ -46,7 +51,7 @@ public final class ImageFetcherTask {
         }
     }
 
-    public init(configuration: ImageConfiguration, operation: DataOperation? = nil, result: Result<ResultType<UIImage>, ImageError>? = nil) {
+    public init(configuration: ImageConfiguration, operation: DataOperation? = nil, result: ImageResult? = nil) {
         self.configuration = configuration
         self.operation = operation
         self.result = result

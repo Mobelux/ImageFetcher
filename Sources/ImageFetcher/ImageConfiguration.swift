@@ -26,7 +26,7 @@
 //
 
 import Foundation
-import QuartzCore
+import CoreGraphics
 
 /*
  The set of parameters the `ImageLoader` uses to download an image.

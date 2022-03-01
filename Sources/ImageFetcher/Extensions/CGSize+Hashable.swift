@@ -1,6 +1,6 @@
 //
 //  CGSize+Hashable.swift
-//  ImageFetcher
+//  Mobelux
 //
 //  MIT License
 //
@@ -25,7 +25,7 @@
 //  SOFTWARE.
 //
 
-import QuartzCore
+import CoreGraphics
 
 extension CGSize: Hashable {
     public func hash(into hasher: inout Hasher) {
