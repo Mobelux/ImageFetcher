@@ -28,6 +28,7 @@
 import Foundation
 
 public extension URLSessionConfiguration {
+    /// A session configuration object with caching disabled.
     static let cacheless: URLSessionConfiguration = {
         let configuration = URLSessionConfiguration.default
         // Disable caching since we are going to use our own caches.

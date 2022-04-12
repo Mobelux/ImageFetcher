@@ -27,11 +27,15 @@
 
 import Foundation
 
+/// A simple wrapper for a closure performing an async network request.
 public struct Networking {
+    /// Downloads the contents of a URL based on the specified URL request and delivers the data asynchronously.
     public let load: (URLRequest) async throws -> (Data, URLResponse)
 }
 
 public extension Networking {
+    /// Creates a network request wrapper with the specified session configuration.
+    /// - Parameter configuration: A configuration object that specifies certain behaviors, such as caching policies, timeouts, proxies, pipelining, TLS versions to support, cookie policies, credential storage, and so on.
     init(_ configuration: URLSessionConfiguration = .cacheless) {
         let session = URLSession(configuration: configuration)
         if #available(iOS 15.0, macOS 12.0, tvOS 15.0, watchOS 8.0, *) {
