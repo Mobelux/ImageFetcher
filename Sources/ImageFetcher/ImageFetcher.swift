@@ -159,8 +159,7 @@ public extension ImageFetcher {
             let data = try await self.networking.load(request).0
             try Task.checkCancellation()
 
-            guard let image = Image(data: data),
-                  let editedImage = image.edit(configuration: imageConfiguration) else {
+            guard let editedImage = Image(data: data)?.edit(configuration: imageConfiguration) else {
                 throw ImageError.cannotParse
             }
             try Task.checkCancellation()
