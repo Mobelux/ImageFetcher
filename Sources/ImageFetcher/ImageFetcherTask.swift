@@ -30,36 +30,38 @@ import AppKit
 #else
 import UIKit
 #endif
-import DataOperation
 
 public typealias ImageResult = Result<ResultType<Image>, ImageError>
+// TODO: remove
 public typealias ImageHandler = (ImageResult) -> ()
 
 public final class ImageFetcherTask {
-    var operation: DataOperation?
-
-    public var handler: ImageHandler?
-    public var configuration: ImageConfiguration
-    public var result: ImageResult? {
-        didSet {
-            guard let result = result else {
-                return
-            }
-
-            handler?(result)
-            operation = nil
-        }
+    public enum State {
+        case pending(Task<Image, Error>)
+        case completed(ResultType<Image>)
     }
 
-    public init(configuration: ImageConfiguration, operation: DataOperation? = nil, result: ImageResult? = nil) {
+    public var configuration: ImageConfiguration
+    public private(set) var state: State
+
+    public convenience init(configuration: ImageConfiguration, task: Task<Image, Error>) {
+        self.init(configuration: configuration, state: .pending(task))
+    }
+
+    public convenience init(configuration: ImageConfiguration, result: ResultType<Image>) {
+        self.init(configuration: configuration, state: .completed(result))
+    }
+
+    public init(configuration: ImageConfiguration, state: State) {
         self.configuration = configuration
-        self.operation = operation
-        self.result = result
+        self.state = state
     }
 
     public func cancel() {
-        operation?.cancel()
-        operation = nil
+        guard case let .pending(task) = state else {
+            return
+        }
+        task.cancel()
     }
 }
 
