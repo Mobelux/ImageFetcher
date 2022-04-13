@@ -154,9 +154,9 @@ public extension ImageFetcher {
             }
         }
 
-        let task: Task<Image, Error> = Task(priority: imageConfiguration.priority) { [unowned self] in
+        let task: Task<Image, Error> = Task(priority: imageConfiguration.priority) {
             let request = URLRequest(url: imageConfiguration.url)
-            let data = try await self.networking.load(request).0
+            let data = try await networking.load(request).0
             try Task.checkCancellation()
 
             guard let editedImage = Image(data: data)?.edit(configuration: imageConfiguration) else {
