@@ -43,6 +43,13 @@ public final class ImageFetcherTask {
 
     public var configuration: ImageConfiguration
     public private(set) var state: State
+    public var isPending: Bool {
+        if case .pending = state {
+            return true
+        } else {
+            return false
+        }
+    }
 
     public convenience init(configuration: ImageConfiguration, task: Task<Image, Error>) {
         self.init(configuration: configuration, state: .pending(task))

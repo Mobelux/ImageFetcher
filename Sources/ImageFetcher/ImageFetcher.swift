@@ -39,25 +39,23 @@ extension NSImage {
 #else
 import UIKit
 #endif
-import DataOperation
 import DiskCache
 
-public final class ImageFetcher: ImageFetching {
+public actor ImageFetcher {
     internal var cache: Cache
-    private var queue: Queue
-    private var tasks: Set<ImageFetcherTask> = []
-    private var workerQueue = DispatchQueue.global()
+    internal let networking: Networking
 
-    public init(_ cache: Cache, queue: Queue = OperationQueue(), maxConcurrent: Int = 2) {
+    private var tasks: [String: ImageFetcherTask] = [:]
+
+    public init(_ cache: Cache, networking: Networking = .init()) {
         self.cache = cache
-        self.queue = queue
-
-        self.queue.maxConcurrentOperationCount = maxConcurrent
+        self.networking = networking
     }
 }
 
 // MARK: - Public API Methods
 public extension ImageFetcher {
+    /*
     /// Builds a `ImageLoaderTask`. If the result of the image configuration is cached, `handler` will be called immediately. Otherwise a download operation will be kicked off
     /// - Parameters:
     ///   - url: The url of the image to be downloaded.
@@ -133,33 +131,49 @@ public extension ImageFetcher {
             }
         }
     }
+     */
 
     /// Loads the `ImageConfiguration`. If the result of the image configuration is cached, the result will be returned immediately. Otherwise a download operation will be kicked off.
     /// - Parameter url: The url of the image to be downloaded.
     /// - Returns: The result of the image load.
-    func load(_ url: URL) async -> ImageResult {
-        await load(ImageConfiguration(url: url))
+    func load(_ url: URL) async throws -> ResultType<Image> {
+        try await load(ImageConfiguration(url: url))
     }
 
     /// Loads the `ImageConfiguration`. If the result of the image configuration is cached, the result will be returned immediately. Otherwise a download operation will be kicked off.
     /// - Parameter imageConfiguration: The configuation of the image to be downloaded.
     /// - Returns: The result of the image load.
-    func load(_ imageConfiguration: ImageConfiguration) async -> ImageResult {
-        let imageTask = await task(imageConfiguration)
-
-        return await withUnsafeContinuation { (continuation: UnsafeContinuation<ImageResult, Never>) -> Void in
-            workerQueue.sync {
-                if let result = imageTask.result {
-                    continuation.resume(returning: result)
-                } else {
-                    imageTask.handler = { result in
-                        continuation.resume(returning: result)
-                    }
-
-                    tasks.insert(imageTask)
-                }
+    func load(_ imageConfiguration: ImageConfiguration) async throws -> ResultType<Image> {
+        if let imageTask = tasks[imageConfiguration.key] {
+            switch imageTask.state {
+            case .pending(let task):
+                let image = try await task.value
+                return .downloaded(image)
+            case .completed(let result):
+                return result
             }
         }
+
+        let task: Task<Image, Error> = Task(priority: imageConfiguration.priority) { [unowned self] in
+            let request = URLRequest(url: imageConfiguration.url)
+            let data = try await self.networking.load(request).0
+            try Task.checkCancellation()
+
+            guard let image = Image(data: data),
+                  let editedImage = image.edit(configuration: imageConfiguration) else {
+                throw ImageError.cannotParse
+            }
+            try Task.checkCancellation()
+
+            try await cache(editedImage, key: imageConfiguration)
+            return editedImage
+        }
+
+        tasks[imageConfiguration.key] = ImageFetcherTask(configuration: imageConfiguration, task: task)
+
+        let image = try await task.value
+        tasks[imageConfiguration.key] = ImageFetcherTask(configuration: imageConfiguration, result: .downloaded(image))
+        return .downloaded(image)
     }
 
     /// Cancels an in-flight image load
@@ -171,30 +185,25 @@ public extension ImageFetcher {
     /// Cancels an in-flight image load
     /// - Parameter imageConfiguration: The configuation of the image to be downloaded.
     func cancel(_ imageConfiguration: ImageConfiguration) {
-        guard let task = self[imageConfiguration] else {
+        guard let task = tasks[imageConfiguration.key], task.isPending else {
             return
         }
-
         task.cancel()
-        task.operation = nil
-        task.handler = nil
-
-        tasks.remove(task)
+        tasks[imageConfiguration.key] = nil
     }
 
-    subscript (_ url: URL) -> ImageFetcherTask? {
+    subscript(_ url: URL) -> ImageFetcherTask? {
         self[ImageConfiguration(url: url)]
     }
 
-    subscript (_ imageConfiguration: ImageConfiguration) -> ImageFetcherTask? {
-        tasks.first(where: { (task) -> Bool in
-            task.configuration == imageConfiguration
-        })
+    subscript(_ imageConfiguration: ImageConfiguration) -> ImageFetcherTask? {
+        tasks[imageConfiguration.key]
     }
 
     /// Deletes all images in the cache
-    func deleteCache() throws {
-        try cache.syncDeleteAll()
+    func deleteCache() async throws {
+        try await cache.deleteAll()
+        tasks = [:]
     }
 
     /// Deletes image from the cache
@@ -213,15 +222,15 @@ public extension ImageFetcher {
     /// - Parameters:
     ///   - image: The image instance
     ///   - key: The url of the image to be saved.
-    func cache(_ image: Image, key: URL) throws {
-        try cache(image, key: ImageConfiguration(url: key))
+    func cache(_ image: Image, key: URL) async throws {
+        try await cache(image, key: ImageConfiguration(url: key))
     }
 
     /// Saves in image to the cache
     /// - Parameters:
     ///   - image: The image instance
     ///   - key: The configuation of the image to be saved.
-    func cache(_ image: Image, key: ImageConfiguration) throws {
+    func cache(_ image: Image, key: ImageConfiguration) async throws {
         guard let data = image.pngData() else {
             throw NSError(
                 domain: "ImageFetcher.mobelux.com",
@@ -229,73 +238,25 @@ public extension ImageFetcher {
                 userInfo: [NSLocalizedDescriptionKey: "Could not convert image to PNG"])
         }
 
-        try cache.syncCache(data, key: key.key)
+        try await cache.cache(data, key: key.key)
     }
 
     /// Loads an image from the cache.
     /// - Parameter key: The url of the image to load.
     /// - Returns:An image instance that has been previously cached. Nil if not found.
-    func load(image key: URL) -> Image? {
-        load(image: ImageConfiguration(url: key))
+    func load(image key: URL) async -> Image? {
+        await load(image: ImageConfiguration(url: key))
     }
 
     /// Loads an image from the cache.
     /// - Parameter key: The configuation of the image to load.
     /// - Returns:An image instance that has been previously cached. Nil if not found.
-    func load(image key: ImageConfiguration) -> Image? {
-        do {
-            guard let cachedData = try? cache.syncData(key.key),
-                  let image = Image(data: cachedData)?.decompressed() else {
-                      return nil
-                  }
-
-            return image
+    func load(image key: ImageConfiguration) async -> Image? {
+        guard let cachedData = try? await cache.data(key.key),
+              let image = Image(data: cachedData)?.decompressed() else {
+            return nil
         }
-    }
-}
-
-// MARK: - Private Methods
-private extension ImageFetcher {
-    func completion(task: ImageFetcherTask) -> (() -> ()) {
-        guard let operation = task.operation else {
-            return {}
-        }
-
-        return { [weak operation, weak self] in
-            guard let soperation = operation, let sself = self else {
-                return
-            }
-
-            // grab the operation's result
-            guard let result = soperation.result else {
-                task.result = .failure(.noResult)
-                return
-            }
-
-            // convert data result to image result
-            let imageResult: ImageResult = {
-                switch result {
-                // data was successfully downloaded
-                case .success(let data):
-                    guard let image = Image(data: data), let editedImage = image.edit(configuration: task.configuration) else {
-                        return .failure(.cannotParse)
-                    }
-
-                    do {
-                        try sself.cache(editedImage, key: task.configuration)
-                    } catch {
-                        return .failure(ImageError.custom(error.localizedDescription))
-                    }
-
-                    return .success(.downloaded(editedImage))
-                case .failure(let error):
-                    return .failure(ImageError.convertFrom(error))
-                }
-            }()
-
-            // call the handle with an image result
-            task.result = imageResult
-        }
+        return image
     }
 }
 
