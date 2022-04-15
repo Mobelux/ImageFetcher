@@ -44,12 +44,17 @@ import DiskCache
 
 public final class ImageFetcher: ImageFetching {
     internal var cache: Cache
+    private let session: Session
     private var queue: Queue
     private var tasks: Set<ImageFetcherTask> = []
     private var workerQueue = DispatchQueue(label: "com.mobelux.image-fetcher")
 
-    public init(_ cache: Cache, queue: Queue = OperationQueue(), maxConcurrent: Int = 2) {
+    public init(_ cache: Cache,
+                session: Session = URLSession(configuration: .default),
+                queue: Queue = OperationQueue(),
+                maxConcurrent: Int = 2) {
         self.cache = cache
+        self.session = session
         self.queue = queue
 
         self.queue.maxConcurrentOperationCount = maxConcurrent
@@ -100,7 +105,7 @@ public extension ImageFetcher {
                             configuration: imageConfiguration,
                             result: .success(.cached(image))))
                 } else {
-                    let operation = DataOperation(request: URLRequest(url: imageConfiguration.url))
+                    let operation = DataOperation(request: URLRequest(url: imageConfiguration.url), session: session)
                     operation.name = imageConfiguration.key
 
                     let task = ImageFetcherTask(configuration: imageConfiguration, operation: operation)
