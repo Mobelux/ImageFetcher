@@ -46,7 +46,7 @@ public final class ImageFetcher: ImageFetching {
     internal var cache: Cache
     private var queue: Queue
     private var tasks: Set<ImageFetcherTask> = []
-    private var workerQueue = DispatchQueue.global()
+    private var workerQueue = DispatchQueue(label: "com.mobelux.image-fetcher")
 
     public init(_ cache: Cache, queue: Queue = OperationQueue(), maxConcurrent: Int = 2) {
         self.cache = cache
