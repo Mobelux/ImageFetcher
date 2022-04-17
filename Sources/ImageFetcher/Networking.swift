@@ -31,6 +31,12 @@ import Foundation
 public struct Networking {
     /// Downloads the contents of a URL based on the specified URL request and delivers the data asynchronously.
     public let load: (URLRequest) async throws -> (Data, URLResponse)
+
+    /// Creates a wrapper instance.
+    /// - Parameter load: A closure performing an async network request.
+    public init(_ load: @escaping (URLRequest) async throws -> (Data, URLResponse)) {
+        self.load = load
+    }
 }
 
 public extension Networking {
