@@ -136,14 +136,14 @@ public extension ImageFetcher {
     /// Loads the `ImageConfiguration`. If the result of the image configuration is cached, the result will be returned immediately. Otherwise a download operation will be kicked off.
     /// - Parameter url: The url of the image to be downloaded.
     /// - Returns: The result of the image load.
-    func load(_ url: URL) async throws -> ResultType<Image> {
+    func load(_ url: URL) async throws -> ImageSource {
         try await load(ImageConfiguration(url: url))
     }
 
     /// Loads the `ImageConfiguration`. If the result of the image configuration is cached, the result will be returned immediately. Otherwise a download operation will be kicked off.
     /// - Parameter imageConfiguration: The configuation of the image to be downloaded.
     /// - Returns: The result of the image load.
-    func load(_ imageConfiguration: ImageConfiguration) async throws -> ResultType<Image> {
+    func load(_ imageConfiguration: ImageConfiguration) async throws -> ImageSource {
         if let imageTask = tasks[imageConfiguration.key] {
             switch imageTask.state {
             case .pending(let task):

@@ -1,10 +1,10 @@
 //
-//  ResultType.swift
+//  ImageSource.swift
 //  Mobelux
 //
 //  MIT License
 //
-//  Copyright (c) 2020 Mobelux LLC
+//  Copyright (c) 2022 Mobelux LLC
 //
 //  Permission is hereby granted, free of charge, to any person obtaining a copy
 //  of this software and associated documentation files (the "Software"), to deal
@@ -27,11 +27,11 @@
 
 import Foundation
 
-public enum ResultType<T> {
-    case cached(T)
-    case downloaded(T)
+public enum ImageSource {
+    case cached(Image)
+    case downloaded(Image)
 
-    public var value: T {
+    public var value: Image {
         switch self {
         case .cached(let value):
             return value

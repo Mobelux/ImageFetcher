@@ -31,14 +31,14 @@ import AppKit
 import UIKit
 #endif
 
-public typealias ImageResult = Result<ResultType<Image>, ImageError>
+public typealias ImageResult = Result<ImageSource, ImageError>
 // TODO: remove
 public typealias ImageHandler = (ImageResult) -> ()
 
 public final class ImageFetcherTask {
     public enum State {
         case pending(Task<Image, Error>)
-        case completed(ResultType<Image>)
+        case completed(ImageSource)
     }
 
     public var configuration: ImageConfiguration
@@ -55,7 +55,7 @@ public final class ImageFetcherTask {
         self.init(configuration: configuration, state: .pending(task))
     }
 
-    public convenience init(configuration: ImageConfiguration, result: ResultType<Image>) {
+    public convenience init(configuration: ImageConfiguration, result: ImageSource) {
         self.init(configuration: configuration, state: .completed(result))
     }
 
