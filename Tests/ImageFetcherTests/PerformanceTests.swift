@@ -1,7 +1,7 @@
 import XCTest
 @testable import ImageFetcher
 
-final class ImageFetcherPerformanceTests: XCTestCase {
+final class PerformanceTests: XCTestCase {
     enum Constants {
         static let iterationCount = 5_000
         static let imageSide: Int = 250
