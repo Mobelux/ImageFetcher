@@ -300,6 +300,11 @@ private extension ImageFetcher {
 
             // call the handle with an image result
             task.result = imageResult
+
+            // remove fetcher task from tasks
+            sself.workerQueue.sync {
+                _ = sself.tasks.remove(task)
+            }
         }
     }
 }
