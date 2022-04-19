@@ -4,8 +4,8 @@ import XCTest
 final class PerformanceTests: XCTestCase {
     enum Constants {
         static let baseURLString = "https://example.com"
-        static let iterationCount = 1_000
-        static let batchCount = 10
+        static let iterationCount = 500
+        static let batchCount = 5
         static let requestCount = 10
         static let imageSide: Int = 250
         static let maxConcurrent: Int = 2
@@ -69,7 +69,7 @@ final class PerformanceTests: XCTestCase {
             do {
                 try Self.cache.syncDeleteAll()
             } catch {
-                XCTFail()
+                XCTFail("DiskCacke.syncDeleteAll() threw error")
             }
             print("Done")
         }
@@ -108,7 +108,7 @@ final class PerformanceTests: XCTestCase {
             do {
                 try Self.cache.syncDeleteAll()
             } catch {
-                XCTFail()
+                XCTFail("DiskCacke.syncDeleteAll() threw error")
             }
             print("Done")
         }
@@ -145,7 +145,7 @@ final class PerformanceTests: XCTestCase {
             do {
                 try Self.cache.syncDeleteAll()
             } catch {
-                XCTFail()
+                XCTFail("DiskCacke.syncDeleteAll() threw error")
             }
             print("Done")
         }
@@ -186,7 +186,7 @@ final class PerformanceTests: XCTestCase {
             do {
                 try Self.cache.syncDeleteAll()
             } catch {
-                XCTFail()
+                XCTFail("DiskCacke.syncDeleteAll() threw error")
             }
             print("Done")
         }
