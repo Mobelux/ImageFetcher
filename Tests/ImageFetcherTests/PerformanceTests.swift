@@ -42,8 +42,8 @@ final class PerformanceTests: XCTestCase {
 
     func testSyncPerformance() throws {
         let session = URLSession(configuration: .mock)
-        URLProtocolMock.responseProvider = { url in
-            .success((Color.random().image(Constants.imageSize).pngData()!, Mock.makeResponse(url: url)))
+        MockURLProtocol.responseProvider = { url in
+            (Color.random().image(Constants.imageSize).pngData()!, Mock.makeResponse(url: url))
         }
 
         measure {
@@ -73,8 +73,8 @@ final class PerformanceTests: XCTestCase {
 
     func testAsyncPerformance() async throws {
         let session = URLSession(configuration: .mock)
-        URLProtocolMock.responseProvider = { url in
-            .success((Color.random().image(Constants.imageSize).pngData()!, Mock.makeResponse(url: url)))
+        MockURLProtocol.responseProvider = { url in
+            (Color.random().image(Constants.imageSize).pngData()!, Mock.makeResponse(url: url))
         }
 
         measureMetrics([.wallClockTime], automaticallyStartMeasuring: true) {
