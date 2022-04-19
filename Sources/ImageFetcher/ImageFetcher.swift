@@ -309,3 +309,9 @@ private extension ImageFetcher {
     }
 }
 
+// MARK: - Internal Test Members
+internal extension ImageFetcher {
+    var taskCount: Int {
+        tasks.count
+    }
+}
