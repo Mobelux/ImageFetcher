@@ -71,7 +71,6 @@ final class PerformanceTests: XCTestCase {
             } catch {
                 XCTFail()
             }
-            print("Done")
         }
     }
 
@@ -110,7 +109,6 @@ final class PerformanceTests: XCTestCase {
             } catch {
                 XCTFail()
             }
-            print("Done")
         }
     }
 
@@ -147,7 +145,6 @@ final class PerformanceTests: XCTestCase {
             } catch {
                 XCTFail()
             }
-            print("Done")
         }
     }
 
@@ -188,7 +185,6 @@ final class PerformanceTests: XCTestCase {
             } catch {
                 XCTFail()
             }
-            print("Done")
         }
     }
 }
