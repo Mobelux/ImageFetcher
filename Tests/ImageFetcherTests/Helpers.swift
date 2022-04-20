@@ -43,6 +43,8 @@ extension Color {
 }
 
 enum Mock {
+    static var baseURL = URL(string: "https://example.com")!
+
     static func makeResponse(url: URL, statusCode: Int = 200, headerFields: [String: String]? = nil) -> HTTPURLResponse {
         HTTPURLResponse(
             url: url,
