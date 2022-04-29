@@ -40,16 +40,27 @@ extension NSImage {
 import UIKit
 #endif
 import DiskCache
+import OrderedCollections
 
 public actor ImageFetcher {
+    public let maxConcurrentTasks: Int
     internal var cache: Cache
     internal let networking: Networking
+    private var scheduledTasks: OrderedDictionary<ImageConfiguration, ScheduledTask> = [:]
+    private var activeTasks: OrderedDictionary<ImageConfiguration, Task<Image, Error>> = [:]
 
-    private var tasks: [String: ImageFetcherTask] = [:]
+    private var canActivateTask: Bool {
+        activeTasks.count < maxConcurrentTasks && !scheduledTasks.isEmpty
+    }
 
-    public init(_ cache: Cache, networking: Networking = .init()) {
+    public init(_ cache: Cache, networking: Networking = .init(), maxConcurrentTasks: Int? = nil) {
         self.cache = cache
         self.networking = networking
+        self.maxConcurrentTasks = maxConcurrentTasks ?? ProcessInfo.processInfo.activeProcessorCount
+    }
+
+    deinit {
+        cancelAll()
     }
 }
 
@@ -144,35 +155,21 @@ public extension ImageFetcher {
     /// - Parameter imageConfiguration: The configuation of the image to be downloaded.
     /// - Returns: The result of the image load.
     func load(_ imageConfiguration: ImageConfiguration) async throws -> ImageSource {
-        if let imageTask = tasks[imageConfiguration.key] {
-            switch imageTask.state {
-            case .pending(let task):
+        if let cachedData = try? await cache.data(imageConfiguration.key),
+           let image = try? await decode(cachedData, imageConfiguration: imageConfiguration) {
+            return .cached(image)
+        } else {
+            switch queuedOperation(imageConfiguration) {
+            case .active(let task):
                 let image = try await task.value
                 return .downloaded(image)
-            case .completed(let result):
-                return result
+            case .scheduled:
+                let image = try await withCheckedThrowingContinuation { (continuation: ImageContinuation) in
+                    scheduledTasks[imageConfiguration]?.append(continuation)
+                }
+                return .downloaded(image)
             }
         }
-
-        let task: Task<Image, Error> = Task(priority: imageConfiguration.priority) {
-            let request = URLRequest(url: imageConfiguration.url)
-            let data = try await networking.load(request).0
-            try Task.checkCancellation()
-
-            guard let editedImage = Image(data: data)?.edit(configuration: imageConfiguration) else {
-                throw ImageError.cannotParse
-            }
-            try Task.checkCancellation()
-
-            try await cache(editedImage, key: imageConfiguration)
-            return editedImage
-        }
-
-        tasks[imageConfiguration.key] = ImageFetcherTask(configuration: imageConfiguration, task: task)
-
-        let image = try await task.value
-        tasks[imageConfiguration.key] = ImageFetcherTask(configuration: imageConfiguration, result: .downloaded(image))
-        return .downloaded(image)
     }
 
     /// Cancels an in-flight image load
@@ -184,25 +181,24 @@ public extension ImageFetcher {
     /// Cancels an in-flight image load
     /// - Parameter imageConfiguration: The configuation of the image to be downloaded.
     func cancel(_ imageConfiguration: ImageConfiguration) {
-        guard let task = tasks[imageConfiguration.key], task.isPending else {
-            return
+        if let activeTask = activeTasks.removeValue(forKey: imageConfiguration) {
+            activeTask.cancel()
+        } else if let scheduledTask = scheduledTasks.removeValue(forKey: imageConfiguration) {
+            scheduledTask.cancel()
         }
-        task.cancel()
-        tasks[imageConfiguration.key] = nil
     }
 
-    subscript(_ url: URL) -> ImageFetcherTask? {
-        self[ImageConfiguration(url: url)]
-    }
-
-    subscript(_ imageConfiguration: ImageConfiguration) -> ImageFetcherTask? {
-        tasks[imageConfiguration.key]
+    /// Cancels all in-flight image loads.
+    func cancelAll() {
+        activeTasks.forEach { $1.cancel() }
+        activeTasks = [:]
+        scheduledTasks.forEach { $1.cancel() }
+        scheduledTasks = [:]
     }
 
     /// Deletes all images in the cache
     func deleteCache() async throws {
         try await cache.deleteAll()
-        tasks = [:]
     }
 
     /// Deletes image from the cache
@@ -259,3 +255,124 @@ public extension ImageFetcher {
     }
 }
 
+// MARK: - Private Methods
+private extension ImageFetcher {
+    typealias ImageContinuation = CheckedContinuation<Image, Error>
+
+    enum QueuedOperation {
+        case scheduled
+        case active(Task<Image, Error>)
+    }
+
+    struct ScheduledTask {
+        var continuations: [ImageContinuation] = []
+
+        mutating func append(_ continuation: ImageContinuation) {
+            continuations.append(continuation)
+        }
+
+        func cancel() {
+            resume(throwing: CancellationError())
+        }
+
+        func resume(returning value: Image) {
+            continuations.forEach { $0.resume(returning: value) }
+        }
+
+        func resume(throwing error: Error) {
+            continuations.forEach { $0.resume(throwing: error) }
+        }
+    }
+
+    func complete(_ image: Image, imageConfiguration: ImageConfiguration) {
+        activeTasks[imageConfiguration] = nil
+
+        Task.detached(priority: .background) {
+            try await self.cache(image, key: imageConfiguration)
+        }
+
+        activateNext()
+    }
+
+    func activateNext() {
+        guard canActivateTask else {
+            return
+        }
+
+        let (scheduledImageConfiguration, scheduledTask) = scheduledTasks.removeFirst()
+        _ = makeTask(scheduledImageConfiguration, scheduledTask: scheduledTask)
+    }
+
+    func makeTask(
+        _ imageConfiguration: ImageConfiguration,
+        scheduledTask: ScheduledTask? = nil
+    ) -> Task<Image, Error> {
+        let task = Task<Image, Error>(priority: imageConfiguration.priority) {
+            do {
+                try Task.checkCancellation()
+                let request = URLRequest(url: imageConfiguration.url)
+                let data = try await networking.load(request).0
+
+                try Task.checkCancellation()
+                guard let image = Image(data: data)?.edit(configuration: imageConfiguration) else {
+                    throw ImageError.cannotParse
+                }
+
+                complete(image, imageConfiguration: imageConfiguration)
+
+                return image
+            } catch {
+                activateNext()
+                throw error
+            }
+        }
+
+        if let scheduledTask = scheduledTask {
+            Task(priority: imageConfiguration.priority) {
+                do {
+                    let image = try await task.value
+                    scheduledTask.resume(returning: image)
+                } catch {
+                    scheduledTask.resume(throwing: error)
+                }
+            }
+        }
+
+        activeTasks[imageConfiguration] = task
+
+        return task
+    }
+
+    func queuedOperation(_ imageConfiguration: ImageConfiguration) -> QueuedOperation {
+        if let activeTask = activeTasks[imageConfiguration] {
+            return .active(activeTask)
+        } else if scheduledTasks[imageConfiguration] != nil {
+            return .scheduled
+        } else {
+            if activeTasks.count < maxConcurrentTasks {
+                return .active(makeTask(imageConfiguration))
+            } else {
+                scheduledTasks[imageConfiguration] = .init()
+                return .scheduled
+            }
+        }
+    }
+
+    nonisolated func decode(_ data: Data, imageConfiguration: ImageConfiguration) async throws -> Image {
+        guard let editedImage = Image(data: data)?.edit(configuration: imageConfiguration) else {
+            throw ImageError.cannotParse
+        }
+        return editedImage
+    }
+}
+
+// MARK: - Testing
+internal extension ImageFetcher {
+    var activeTaskCount: Int {
+        activeTasks.count
+    }
+
+    var scheduledTaskCount: Int {
+        scheduledTasks.count
+    }
+}
