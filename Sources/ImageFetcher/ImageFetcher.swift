@@ -42,6 +42,10 @@ import UIKit
 import DiskCache
 import OrderedCollections
 
+public typealias ImageResult = Result<ImageSource, ImageError>
+
+public typealias ImageHandler = (ImageResult) -> Void
+
 public actor ImageFetcher {
     public let maxConcurrentTasks: Int
     internal var cache: Cache
