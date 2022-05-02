@@ -1,0 +1,51 @@
+name: Generate DocC
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  Build-Github-Actions:
+    runs-on: macos-12
+    steps:
+    - name: Git Checkout main
+      uses: actions/checkout@v3
+
+    - name: Git Checkout docs
+      uses: actions/checkout@v3
+      with:
+        ref: docs
+        path: docs
+
+    - name: Build Doc Bundle
+      run: |
+          echo "Building Documentation..."
+          xcodebuild docbuild -scheme ImageFetcher -derivedDataPath ./docbuild -destination 'platform=macOS' > build_output.txt
+          # Uncomment to see build output
+          # cat build_output.txt
+
+          # Find documentation inside docbuild
+          DOCC_DIR=`find ./docbuild -type d -iname "ImageFetcher.doccarchive"`
+
+          # Pretty print DocC JSON output so that it can be consistently diffed between commits
+          export DOCC_JSON_PRETTYPRINT=YES
+
+          echo "Exporting Documentation..."
+          $(xcrun --find docc) process-archive \
+          transform-for-static-hosting "$DOCC_DIR" \
+          --output-path ./docs/docs \
+          --hosting-base-path ImageFetcher
+
+    - name: Commit
+      id: commit
+      run: |
+          CURRENT_COMMIT_HASH=`git rev-parse --short HEAD`
+          cd docs
+          git add docs
+          if [ -n "$(git status --porcelain)" ]; then
+              echo "Documentation changes found. Commiting the changes to the 'docs' branch and pushing to origin."
+              git commit -m "Update GitHub Pages documentation site to '$CURRENT_COMMIT_HASH'."
+              git push origin HEAD:docs
+          else
+            # No changes found, nothing to commit.
+            echo "No documentation changes found."
+          fi
