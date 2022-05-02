@@ -61,7 +61,6 @@ public actor ImageFetcher {
         self.cache = cache
         self.networking = networking
         self.maxConcurrentTasks = maxConcurrentTasks ?? ProcessInfo.processInfo.activeProcessorCount
-        print("maxConcurrent: \(self.maxConcurrentTasks)")
     }
 
     deinit {
