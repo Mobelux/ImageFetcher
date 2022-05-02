@@ -40,7 +40,6 @@ public struct ImageConfiguration: Hashable {
     public let constrain: Bool
     public let cornerRadius: Float
     public let scale: Float
-    // TODO: add enum + value to determine whether to cache raw or processed image?
 
     public init(url: URL,
                 priority: TaskPriority = .userInitiated,
