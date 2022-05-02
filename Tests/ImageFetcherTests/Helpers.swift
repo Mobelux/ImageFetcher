@@ -42,6 +42,18 @@ extension Color {
     }
 }
 
+actor Counter {
+    private(set) var count = 0
+
+    func increment() {
+        count += 1
+    }
+
+    func reset() {
+        count = 0
+    }
+}
+
 enum Mock {
     static var baseURL = URL(string: "https://example.com")!
 
