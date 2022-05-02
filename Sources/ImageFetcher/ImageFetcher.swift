@@ -114,7 +114,7 @@ public extension ImageFetcher {
                             configuration: imageConfiguration,
                             result: .success(.cached(image))))
                 } else {
-                    let operation = DataOperation(request: URLRequest(url: imageConfiguration.url))
+                    let operation = DataOperation(request: URLRequest(url: imageConfiguration.url), session: session)
                     operation.name = imageConfiguration.key
 
                     let task = ImageFetcherTask(configuration: imageConfiguration, operation: operation)
