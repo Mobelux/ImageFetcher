@@ -50,17 +50,18 @@ public actor ImageFetcher {
     public let maxConcurrentTasks: Int
     internal var cache: Cache
     internal let networking: Networking
-    private var scheduledTasks: OrderedDictionary<ImageConfiguration, ScheduledTask> = [:]
+    private var pendingTasks: OrderedDictionary<ImageConfiguration, PendingTask> = [:]
     private var activeTasks: OrderedDictionary<ImageConfiguration, Task<Image, Error>> = [:]
 
     private var canActivateTask: Bool {
-        activeTasks.count < maxConcurrentTasks && !scheduledTasks.isEmpty
+        activeTasks.count < maxConcurrentTasks && !pendingTasks.isEmpty
     }
 
     public init(_ cache: Cache, networking: Networking = .init(), maxConcurrentTasks: Int? = nil) {
         self.cache = cache
         self.networking = networking
         self.maxConcurrentTasks = maxConcurrentTasks ?? ProcessInfo.processInfo.activeProcessorCount
+        print("maxConcurrent: \(self.maxConcurrentTasks)")
     }
 
     deinit {
@@ -167,9 +168,9 @@ public extension ImageFetcher {
             case .active(let task):
                 let image = try await task.value
                 return .downloaded(image)
-            case .scheduled:
+            case .pending:
                 let image = try await withCheckedThrowingContinuation { (continuation: ImageContinuation) in
-                    scheduledTasks[imageConfiguration]?.append(continuation)
+                    pendingTasks[imageConfiguration]?.append(continuation)
                 }
                 return .downloaded(image)
             }
@@ -187,8 +188,8 @@ public extension ImageFetcher {
     func cancel(_ imageConfiguration: ImageConfiguration) {
         if let activeTask = activeTasks.removeValue(forKey: imageConfiguration) {
             activeTask.cancel()
-        } else if let scheduledTask = scheduledTasks.removeValue(forKey: imageConfiguration) {
-            scheduledTask.cancel()
+        } else if let pendingTask = pendingTasks.removeValue(forKey: imageConfiguration) {
+            pendingTask.cancel()
         }
     }
 
@@ -196,8 +197,8 @@ public extension ImageFetcher {
     func cancelAll() {
         activeTasks.forEach { $1.cancel() }
         activeTasks = [:]
-        scheduledTasks.forEach { $1.cancel() }
-        scheduledTasks = [:]
+        pendingTasks.forEach { $1.cancel() }
+        pendingTasks = [:]
     }
 
     /// Deletes all images in the cache
@@ -264,11 +265,11 @@ private extension ImageFetcher {
     typealias ImageContinuation = CheckedContinuation<Image, Error>
 
     enum QueuedOperation {
-        case scheduled
+        case pending
         case active(Task<Image, Error>)
     }
 
-    struct ScheduledTask {
+    struct PendingTask {
         var continuations: [ImageContinuation] = []
 
         mutating func append(_ continuation: ImageContinuation) {
@@ -303,13 +304,13 @@ private extension ImageFetcher {
             return
         }
 
-        let (scheduledImageConfiguration, scheduledTask) = scheduledTasks.removeFirst()
-        _ = makeTask(scheduledImageConfiguration, scheduledTask: scheduledTask)
+        let (pendingImageConfiguration, pendingTask) = pendingTasks.removeFirst()
+        _ = makeTask(pendingImageConfiguration, pendingTask: pendingTask)
     }
 
     func makeTask(
         _ imageConfiguration: ImageConfiguration,
-        scheduledTask: ScheduledTask? = nil
+        pendingTask: PendingTask? = nil
     ) -> Task<Image, Error> {
         let task = Task<Image, Error>(priority: imageConfiguration.priority) {
             do {
@@ -331,13 +332,13 @@ private extension ImageFetcher {
             }
         }
 
-        if let scheduledTask = scheduledTask {
+        if let pendingTask = pendingTask {
             Task(priority: imageConfiguration.priority) {
                 do {
                     let image = try await task.value
-                    scheduledTask.resume(returning: image)
+                    pendingTask.resume(returning: image)
                 } catch {
-                    scheduledTask.resume(throwing: error)
+                    pendingTask.resume(throwing: error)
                 }
             }
         }
@@ -350,14 +351,14 @@ private extension ImageFetcher {
     func queuedOperation(_ imageConfiguration: ImageConfiguration) -> QueuedOperation {
         if let activeTask = activeTasks[imageConfiguration] {
             return .active(activeTask)
-        } else if scheduledTasks[imageConfiguration] != nil {
-            return .scheduled
+        } else if pendingTasks[imageConfiguration] != nil {
+            return .pending
         } else {
             if activeTasks.count < maxConcurrentTasks {
                 return .active(makeTask(imageConfiguration))
             } else {
-                scheduledTasks[imageConfiguration] = .init()
-                return .scheduled
+                pendingTasks[imageConfiguration] = .init()
+                return .pending
             }
         }
     }
@@ -376,7 +377,7 @@ internal extension ImageFetcher {
         activeTasks.count
     }
 
-    var scheduledTaskCount: Int {
-        scheduledTasks.count
+    var pendingTaskCount: Int {
+        pendingTasks.count
     }
 }
