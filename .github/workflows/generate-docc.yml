@@ -10,11 +10,11 @@ jobs:
     - name: Git Checkout main
       uses: actions/checkout@v3
 
-    - name: Git Checkout docs
+    - name: Git Checkout gh-pages
       uses: actions/checkout@v3
       with:
-        ref: docs
-        path: docs
+        ref: gh-pages
+        path: gh-pages
 
     - name: Build Doc Bundle
       run: |
@@ -32,19 +32,19 @@ jobs:
           echo "Exporting Documentation..."
           $(xcrun --find docc) process-archive \
           transform-for-static-hosting "$DOCC_DIR" \
-          --output-path ./docs/docs \
+          --output-path ./gh-pages/docs \
           --hosting-base-path ImageFetcher
 
     - name: Commit
       id: commit
       run: |
           CURRENT_COMMIT_HASH=`git rev-parse --short HEAD`
-          cd docs
+          cd gh-pages
           git add docs
           if [ -n "$(git status --porcelain)" ]; then
-              echo "Documentation changes found. Commiting the changes to the 'docs' branch and pushing to origin."
+              echo "Documentation changes found. Commiting the changes to the 'gh-pages' branch and pushing to origin."
               git commit -m "Update GitHub Pages documentation site to '$CURRENT_COMMIT_HASH'."
-              git push origin HEAD:docs
+              git push origin HEAD:gh-pages
           else
             # No changes found, nothing to commit.
             echo "No documentation changes found."
