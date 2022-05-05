@@ -3,6 +3,13 @@ on:
   push:
     branches: [ main ]
 
+env:
+  GH-PAGES-BRANCH: 'gh-pages'
+  GH-PAGES-PATH: 'gh-pages'
+  BUILD-SCHEME: 'ImageFetcher'
+  DERIVED-DATA-PATH: '/Users/runner/docbuild'
+  HOSTING-BASE-PATH: 'ImageFetcher'
+
 jobs:
   Build-Github-Actions:
     runs-on: macos-12
@@ -13,18 +20,18 @@ jobs:
     - name: Git Checkout gh-pages
       uses: actions/checkout@v3
       with:
-        ref: gh-pages
-        path: gh-pages
+        ref: ${{ env.GH-PAGES-BRANCH }}
+        path: ${{ env.GH-PAGES-PATH }}
 
     - name: Build Doc Bundle
       run: |
           echo "Building Documentation..."
-          xcodebuild docbuild -scheme ImageFetcher -derivedDataPath ./docbuild -destination 'platform=macOS' > build_output.txt
+          xcodebuild docbuild -scheme ${{ env.BUILD-SCHEME }} -derivedDataPath ${{ env.DERIVED-DATA-PATH }} -destination 'platform=macOS' > build_output.txt
           # Uncomment to see build output
           # cat build_output.txt
 
           # Find documentation inside docbuild
-          DOCC_DIR=`find ./docbuild -type d -iname "ImageFetcher.doccarchive"`
+          DOCC_DIR=`find ${{ env.DERIVED-DATA-PATH }} -type d -iname "${{ env.BUILD-SCHEME }}.doccarchive"`
 
           # Pretty print DocC JSON output so that it can be consistently diffed between commits
           export DOCC_JSON_PRETTYPRINT=YES
@@ -32,19 +39,19 @@ jobs:
           echo "Exporting Documentation..."
           $(xcrun --find docc) process-archive \
           transform-for-static-hosting "$DOCC_DIR" \
-          --output-path ./gh-pages/docs \
-          --hosting-base-path ImageFetcher
+          --output-path ./${{ env.GH-PAGES-PATH }}/docs \
+          --hosting-base-path ${{ env.HOSTING-BASE-PATH }}
 
     - name: Commit
       id: commit
       run: |
           CURRENT_COMMIT_HASH=`git rev-parse --short HEAD`
-          cd gh-pages
+          cd ${{ env.GH-PAGES-PATH }}
           git add docs
           if [ -n "$(git status --porcelain)" ]; then
-              echo "Documentation changes found. Commiting the changes to the 'gh-pages' branch and pushing to origin."
+              echo "Documentation changes found. Commiting the changes to the pages branch and pushing to origin."
               git commit -m "Update GitHub Pages documentation site to '$CURRENT_COMMIT_HASH'."
-              git push origin HEAD:gh-pages
+              git push origin HEAD:${{ env.GH-PAGES-BRANCH }}
           else
             # No changes found, nothing to commit.
             echo "No documentation changes found."
