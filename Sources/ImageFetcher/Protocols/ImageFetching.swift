@@ -52,6 +52,9 @@ public protocol ImageURLFetching {
     /// Deletes all images in the cache
     func deleteCache() throws
 
+    /// Returns the `ImageLoaderTask` associated with the given url, if one exists
+    /// - Parameter url: The url of the image to be downloaded.
+    /// - Returns: An instance of `ImageLoaderTask`. Be sure to check `result` before adding a handler.
     subscript (_ url: URL) -> ImageFetcherTask? { get }
 }
 
@@ -95,6 +98,9 @@ public protocol ImageConfigurationFetching {
     /// Deletes all images in the cache
     func deleteCache() throws
 
+    /// Returns the `ImageLoaderTask` associated with the given configuration, if one exists
+    /// - Parameter url: The configuration of the image to be downloaded.
+    /// - Returns: An instance of `ImageLoaderTask`. Be sure to check `result` before adding a handler.
     subscript (_ imageConfiguration: ImageConfiguration) -> ImageFetcherTask? { get }
 }
 
