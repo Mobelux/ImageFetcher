@@ -209,7 +209,7 @@ public extension ImageFetcher {
     }
 
     /// Deletes image from the cache
-    /// - Parameter imageConfiguration: The url of the image to be deleted.
+    /// - Parameter url: The url of the image to be deleted.
     func delete(_ url: URL) throws {
         try delete(ImageConfiguration(url: url))
     }

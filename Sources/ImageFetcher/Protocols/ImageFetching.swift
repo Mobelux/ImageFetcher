@@ -46,7 +46,7 @@ public protocol ImageURLFetching {
     func cache(_ image: Image, key: URL) throws
 
     /// Deletes image from the cache
-    /// - Parameter imageConfiguration: The url of the image to be deleted.
+    /// - Parameter url: The url of the image to be deleted.
     func delete(_ url: URL) throws
 
     /// Deletes all images in the cache
