@@ -14,7 +14,9 @@ import UIKit
 
 public protocol ImageURLFetching {
     func task(_ url: URL, handler: @escaping (ImageFetcherTask) -> ())
+    func task(_ url: URL) async -> ImageFetcherTask
     func load(_ url: URL, handler: ImageHandler?)
+    func load(_ url: URL) async -> ImageResult
     func cancel(_ url: URL)
     func cache(_ image: Image, key: URL) throws
     func delete(_ url: URL) throws
@@ -25,7 +27,9 @@ public protocol ImageURLFetching {
 
 public protocol ImageConfigurationFetching {
     func task(_ imageConfiguration: ImageConfiguration, handler: @escaping (ImageFetcherTask) -> ())
+    func task(_ imageConfiguration: ImageConfiguration) async -> ImageFetcherTask
     func load(_ imageConfiguration: ImageConfiguration, handler: ImageHandler?)
+    func load(_ imageConfiguration: ImageConfiguration) async -> ImageResult
     func cancel(_ imageConfiguration: ImageConfiguration)
     func cache(_ image: Image, key: ImageConfiguration) throws
     func delete(_ imageConfiguration: ImageConfiguration) throws
