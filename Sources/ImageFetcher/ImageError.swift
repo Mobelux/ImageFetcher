@@ -29,6 +29,7 @@ import Foundation
 import DataOperation
 
 public enum ImageError: LocalizedError {
+    case cancelled
     case cannotParse
     case noResult
     case unknown
@@ -36,6 +37,7 @@ public enum ImageError: LocalizedError {
 
     public var errorDescription: String {
         switch self {
+        case .cancelled: return NSLocalizedString("ImageLoader.cancelled", comment: "")
         case .cannotParse: return NSLocalizedString("ImageLoader.cannotParse", comment: "")
         case .noResult: return NSLocalizedString("ImageLoader.noResult", comment: "")
         case .unknown: return NSLocalizedString("Generic.unknownError", comment: "")
