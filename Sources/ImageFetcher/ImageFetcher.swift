@@ -43,6 +43,7 @@ import DataOperation
 import DiskCache
 
 public final class ImageFetcher: ImageFetching {
+    private let lock = NSLock()
     internal var cache: Cache
     private let session: Session
     private var queue: Queue
@@ -161,7 +162,7 @@ public extension ImageFetcher {
                         continuation.resume(returning: result)
                     }
 
-                    tasks.insert(imageTask)
+                    insertTask(imageTask)
                 }
             }
         }
@@ -176,25 +177,20 @@ public extension ImageFetcher {
     /// Cancels an in-flight image load
     /// - Parameter imageConfiguration: The configuation of the image to be downloaded.
     func cancel(_ imageConfiguration: ImageConfiguration) {
-        guard let task = self[imageConfiguration] else {
+        guard let task = removeTask(imageConfiguration) else {
             return
         }
 
         task.cancel()
-        task.operation = nil
         task.handler = nil
-
-        tasks.remove(task)
     }
 
     subscript (_ url: URL) -> ImageFetcherTask? {
-        self[ImageConfiguration(url: url)]
+        getTask(ImageConfiguration(url: url))
     }
 
     subscript (_ imageConfiguration: ImageConfiguration) -> ImageFetcherTask? {
-        tasks.first(where: { (task) -> Bool in
-            task.configuration == imageConfiguration
-        })
+        getTask(imageConfiguration)
     }
 
     /// Deletes all images in the cache
@@ -261,6 +257,31 @@ public extension ImageFetcher {
 
 // MARK: - Private Methods
 private extension ImageFetcher {
+    func insertTask(_ imageFetcherTask: ImageFetcherTask) {
+        lock.lock()
+        defer { lock.unlock() }
+
+        tasks.insert(imageFetcherTask)
+    }
+
+    func getTask(_ key: ImageConfiguration) -> ImageFetcherTask? {
+        lock.lock()
+        defer { lock.unlock() }
+
+        return tasks.first(where: { $0.configuration == key })
+    }
+
+    @discardableResult
+    func removeTask(_ key: ImageConfiguration) -> ImageFetcherTask? {
+        lock.lock()
+        defer { lock.unlock() }
+
+        guard let task = tasks.first(where: { $0.configuration == key }) else {
+            return nil
+        }
+        return tasks.remove(task)
+    }
+
     func completion(task: ImageFetcherTask) -> (() -> ()) {
         guard let operation = task.operation else {
             return {}
@@ -302,9 +323,7 @@ private extension ImageFetcher {
             task.result = imageResult
 
             // remove fetcher task from tasks
-            sself.workerQueue.sync {
-                _ = sself.tasks.remove(task)
-            }
+            sself.removeTask(task.configuration)
         }
     }
 }
