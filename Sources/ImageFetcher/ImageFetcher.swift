@@ -180,7 +180,7 @@ public extension ImageFetcher {
             return
         }
 
-        task.result = .failure(.cancelled)
+        task.result = .failure(.noResult)
         task.cancel()
         task.operation = nil
         task.handler = nil
