@@ -181,9 +181,9 @@ public extension ImageFetcher {
         }
 
         task.result = .failure(.noResult)
+        task.handler = nil
         task.cancel()
         task.operation = nil
-        task.handler = nil
 
         tasks.remove(task)
     }
