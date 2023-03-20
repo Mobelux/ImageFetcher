@@ -13,23 +13,23 @@ import UIKit
 #endif
 
 public protocol ImageURLFetching {
-    func task(_ url: URL, handler: @escaping (ImageFetcherTask) -> ())
-    func load(_ url: URL, handler: ImageHandler?)
+    func task(_ url: URL) async -> ImageFetcherTask
+    func load(_ url: URL) async -> ImageResult
     func cancel(_ url: URL)
-    func cache(_ image: Image, key: URL) throws
-    func delete(_ url: URL) throws
-    func deleteCache() throws
+    func cache(_ image: Image, key: URL) async throws
+    func delete(_ url: URL) async throws
+    func deleteCache() async throws
 
     subscript (_ url: URL) -> ImageFetcherTask? { get }
 }
 
 public protocol ImageConfigurationFetching {
-    func task(_ imageConfiguration: ImageConfiguration, handler: @escaping (ImageFetcherTask) -> ())
-    func load(_ imageConfiguration: ImageConfiguration, handler: ImageHandler?)
+    func task(_ imageConfiguration: ImageConfiguration) async -> ImageFetcherTask
+    func load(_ imageConfiguration: ImageConfiguration) async -> ImageResult
     func cancel(_ imageConfiguration: ImageConfiguration)
-    func cache(_ image: Image, key: ImageConfiguration) throws
-    func delete(_ imageConfiguration: ImageConfiguration) throws
-    func deleteCache() throws
+    func cache(_ image: Image, key: ImageConfiguration) async throws
+    func delete(_ imageConfiguration: ImageConfiguration) async throws
+    func deleteCache() async throws
 
     subscript (_ imageConfiguration: ImageConfiguration) -> ImageFetcherTask? { get }
 }
