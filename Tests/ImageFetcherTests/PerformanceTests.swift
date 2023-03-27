@@ -3,15 +3,11 @@ import XCTest
 
 final class PerformanceTests: XCTestCase {
     enum Constants {
-        static let baseURLString = "https://example.com"
         static let iterationCount = 500
         static let batchCount = 5
         static let requestCount = 10
-        static let imageSide: Int = 250
+        static let imageSide: CGFloat = 250
         static let maxConcurrent: Int = 2
-        static var imageSize: CGSize {
-            .init(width: Self.imageSide, height: Self.imageSide)
-        }
     }
 
     override class func tearDown() {
@@ -35,18 +31,9 @@ final class PerformanceTests: XCTestCase {
         MockURLProtocol.reset()
     }
 
-    static func makeURL(_ iteration: Int) -> URL {
-        // Periodically hit the cache
-        if iteration % 7 == 0 {
-            return URL(string: Constants.baseURLString)!
-        }
-
-        return URL(string: "\(Constants.baseURLString)/\(iteration)")!
-    }
-
     func testAsyncPerformance() async throws {
         MockURLProtocol.responseProvider = { url in
-            (Color.random().image(Constants.imageSize).pngData()!, Mock.makeResponse(url: url))
+            (Mock.makeImageData(side: Constants.imageSide), Mock.makeResponse(url: url))
         }
 
         measureMetrics([.wallClockTime], automaticallyStartMeasuring: true) {
@@ -58,7 +45,7 @@ final class PerformanceTests: XCTestCase {
                 try await withThrowingTaskGroup(of: ImageSource.self) { group in
                     for iteration in 0 ..< Constants.iterationCount {
                         group.addTask {
-                            async let image = fetcher.load(Self.makeURL(iteration))
+                            async let image = fetcher.load(Mock.makeURL(iteration))
                             return try await image
                         }
                     }
@@ -78,7 +65,7 @@ final class PerformanceTests: XCTestCase {
     func testAsyncPerformanceForBatches() async throws {
         MockURLProtocol.responseDelay = 0.3
         MockURLProtocol.responseProvider = { url in
-            (Color.random().image(Constants.imageSize).pngData()!, Mock.makeResponse(url: url))
+            (Mock.makeImageData(side: Constants.imageSide), Mock.makeResponse(url: url))
         }
 
         measureMetrics([.wallClockTime], automaticallyStartMeasuring: true) {
@@ -91,7 +78,7 @@ final class PerformanceTests: XCTestCase {
                     try await withThrowingTaskGroup(of: ImageSource.self) { group in
                         for request in 0 ..< Constants.requestCount {
                             group.addTask {
-                                async let image = fetcher.load(Self.makeURL(iteration * Constants.requestCount + request))
+                                async let image = fetcher.load(Mock.makeURL(iteration * Constants.requestCount + request))
                                 return try await image
                             }
                         }

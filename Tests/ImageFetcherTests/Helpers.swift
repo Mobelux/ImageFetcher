@@ -58,6 +58,15 @@ enum Mock {
             httpVersion: "HTTP/1.1",
             headerFields: headerFields)!
     }
+
+    static func makeURL(_ iteration: Int, hitCache: (Int) -> Bool = { $0 % 7 == 0 }) -> URL {
+        // Periodically hit the cache
+        if hitCache(iteration) {
+            return baseURL
+        }
+
+        return baseURL.appendingPathComponent("\(iteration)")
+    }
 }
 
 final class MockURLProtocol: URLProtocol {
