@@ -68,16 +68,16 @@ public final class ImageFetcher: ImageFetching {
 
 // MARK: - Public API Methods
 public extension ImageFetcher {
-    /// Builds a `ImageLoaderTask`. If the result of the image configuration is cached, the task will be returned immediately. Otherwise a download operation will be kicked off.
+    /// Builds a `Task` to load an image for the given url.
     /// - Parameter url: The url of the image to be downloaded.
-    /// - Returns: An instance of `ImageLoaderTask`.
+    /// - Returns: The parent task of the image loading operation.
     func task(_ url: URL) async -> Task<ImageSource, Error>  {
         await task(ImageConfiguration(url: url))
     }
 
-    /// Builds a `ImageLoaderTask`. If the result of the image configuration is cached, the task will be returned immediately. Otherwise a download operation will be kicked off.
+    /// Builds a `Task` to download the given image configuration.
     /// - Parameter imageConfiguration: The configuation of the image to be downloaded.
-    /// - Returns: An instance of `ImageLoaderTask`.
+    /// - Returns: The parent task of the image loading operation.
     func task(_ imageConfiguration: ImageConfiguration) async -> Task<ImageSource, Error> {
         if let existingTask = getTask(imageConfiguration) {
             return existingTask
@@ -100,25 +100,25 @@ public extension ImageFetcher {
 
     /// Loads the `URL`. If the result of the image configuration is cached, the result will be returned immediately. Otherwise a download operation will be kicked off.
     /// - Parameter url: The url of the image to be downloaded.
-    /// - Returns: The result of the image load.
+    /// - Returns: The loaded image.
     func load(_ url: URL) async throws -> ImageSource {
         try await load(ImageConfiguration(url: url))
     }
 
     /// Loads the `ImageConfiguration`. If the result of the image configuration is cached, the result will be returned immediately. Otherwise a download operation will be kicked off.
     /// - Parameter imageConfiguration: The configuation of the image to be downloaded.
-    /// - Returns: The result of the image load.
+    /// - Returns: The loaded image.
     func load(_ imageConfiguration: ImageConfiguration) async throws -> ImageSource {
         try await task(imageConfiguration).value
     }
 
-    /// Cancels an in-flight image load
+    /// Cancels an in-flight image load.
     /// - Parameter url: The url of the image to be downloaded.
     func cancel(_ url: URL) {
         cancel(ImageConfiguration(url: url))
     }
 
-    /// Cancels an in-flight image load
+    /// Cancels an in-flight image load.
     /// - Parameter imageConfiguration: The configuation of the image to be downloaded.
     func cancel(_ imageConfiguration: ImageConfiguration) {
         guard let task = removeTask(imageConfiguration) else {
