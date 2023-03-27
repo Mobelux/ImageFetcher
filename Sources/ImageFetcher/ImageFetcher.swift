@@ -28,7 +28,7 @@
 #if os(macOS)
 import AppKit
 
-public extension NSImage {
+extension NSImage {
     func pngData() -> Data? {
         guard let cgImage = cgImage else { return nil }
 

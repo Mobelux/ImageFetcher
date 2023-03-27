@@ -1,6 +1,6 @@
 import Foundation
-import ImageFetcher
 import XCTest
+@testable import ImageFetcher
 
 #if os(macOS)
 import AppKit
