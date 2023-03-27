@@ -2,12 +2,18 @@ import XCTest
 @testable import ImageFetcher
 
 final class ImageFetcherTests: XCTestCase {
-    static var cache: DiskCache!
+    override class func tearDown() {
+        super.tearDown()
 
-    override class func setUp() {
-        super.setUp()
+        guard let searchPath = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask)
+            .first else {
+            fatalError("\(#function) Fatal: Cannot get user directory.")
+        }
+
+        let directoryURL = searchPath.appendingPathComponent("com.mobelux.cache")
+
         do {
-            cache = try DiskCache(storageType: .temporary(nil))
+            try FileManager.default.removeItem(at: directoryURL)
         } catch {
             fatalError()
         }
@@ -15,18 +21,15 @@ final class ImageFetcherTests: XCTestCase {
 
     override func tearDown() {
         super.tearDown()
-        do {
-            try Self.cache.syncDeleteAll()
-        } catch {
-            fatalError()
-        }
+        MockURLProtocol.reset()
     }
 
     func testCompletedTaskRemoval() async throws {
         MockURLProtocol.responseProvider = { url in
             (Mock.makeImageData(side: 150), Mock.makeResponse(url: url))
         }
-        let fetcher = ImageFetcher(Self.cache, networking: Networking(.mock), imageProcessor: MockImageProcessor())
+        let cache = try DiskCache(storageType: .temporary(.custom("\(Date().timeIntervalSince1970)")))
+        let fetcher = ImageFetcher(cache, networking: Networking(.mock), imageProcessor: MockImageProcessor())
 
         let exp = expectation(description: "Finished")
         _ = try await fetcher.load(Mock.baseURL)

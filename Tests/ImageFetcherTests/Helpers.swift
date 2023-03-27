@@ -71,6 +71,11 @@ final class MockURLProtocol: URLProtocol {
 
     override class func canonicalRequest(for request: URLRequest) -> URLRequest { request }
 
+    static func reset() {
+        responseDelay = nil
+        responseProvider = { (Data(), Mock.makeResponse(url: $0)) }
+    }
+
     override func startLoading() {
         if let delay = Self.responseDelay {
             guard client != nil else { return }
