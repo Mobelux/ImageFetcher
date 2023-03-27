@@ -99,3 +99,36 @@ extension URLSessionConfiguration {
         return config
     }
 }
+
+struct MockImageProcessor: ImageProcessing {
+    var decompressDelay: TimeInterval? = nil
+    var processDelay: TimeInterval? = nil
+    var onDecompress: (Data) async throws -> Image
+    var onProcess: (Data, ImageConfiguration) async throws -> Image
+
+    init(
+        decompressDelay: TimeInterval? = nil,
+        processDelay: TimeInterval? = nil,
+        onDecompress: @escaping (Data) async throws -> Image = { Image(data: $0)! },
+        onProcess: @escaping (Data, ImageConfiguration) async throws -> Image = { data, _ in Image(data: data)! }
+    ) {
+        self.decompressDelay = decompressDelay
+        self.processDelay = processDelay
+        self.onDecompress = onDecompress
+        self.onProcess = onProcess
+    }
+
+    func decompress(_ data: Data) async throws -> Image {
+        if let decompressDelay {
+            try await Task.sleep(nanoseconds: UInt64(decompressDelay * 1_000_000_000))
+        }
+        return try await onDecompress(data)
+    }
+
+    func process(_ data: Data, configuration: ImageConfiguration) async throws -> Image {
+        if let processDelay {
+            try await Task.sleep(nanoseconds: UInt64(processDelay * 1_000_000_000))
+        }
+        return try await onProcess(data, configuration)
+    }
+}
