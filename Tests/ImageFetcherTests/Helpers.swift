@@ -33,17 +33,23 @@ extension Color {
 
 extension Color {
     public static func random() -> Color {
-        // Generate between 0 to 1
-        let red = CGFloat(drand48())
-        let green = CGFloat(drand48())
-        let blue = CGFloat(drand48())
-
-        return Color(red: red, green: green, blue: blue, alpha: 1.0)
+        .init(
+            red: CGFloat.random(in: 0...1),
+            green: CGFloat.random(in: 0...1),
+            blue: CGFloat.random(in: 0...1),
+            alpha: 1.0)
     }
 }
 
 enum Mock {
     static var baseURL = URL(string: "https://example.com")!
+
+    static func makeImageData(side: CGFloat) -> Data {
+        Color
+            .random()
+            .image(CGSize(width: side, height: side))
+            .pngData()!
+    }
 
     static func makeResponse(url: URL, statusCode: Int = 200, headerFields: [String: String]? = nil) -> HTTPURLResponse {
         HTTPURLResponse(
