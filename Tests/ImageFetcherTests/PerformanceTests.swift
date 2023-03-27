@@ -45,21 +45,20 @@ final class PerformanceTests: XCTestCase {
     }
 
     func testAsyncPerformance() async throws {
-        let session = URLSession(configuration: .mock)
         MockURLProtocol.responseProvider = { url in
             (Color.random().image(Constants.imageSize).pngData()!, Mock.makeResponse(url: url))
         }
 
         measureMetrics([.wallClockTime], automaticallyStartMeasuring: true) {
-            let fetcher = ImageFetcher(Self.cache, session: session, maxConcurrent: Constants.maxConcurrent)
+            let fetcher = ImageFetcher(Self.cache, networking: Networking(.mock), imageProcessor: MockImageProcessor())
 
             let exp = expectation(description: "Finished")
             Task {
-                try await withThrowingTaskGroup(of: ImageResult.self) { group in
+                try await withThrowingTaskGroup(of: ImageSource.self) { group in
                     for iteration in 0 ..< Constants.iterationCount {
                         group.addTask {
                             async let image = fetcher.load(Self.makeURL(iteration))
-                            return await image
+                            return try await image
                         }
                     }
                     try await group.waitForAll()
@@ -81,23 +80,22 @@ final class PerformanceTests: XCTestCase {
     }
 
     func testAsyncPerformanceForBatches() async throws {
-        let session = URLSession(configuration: .mock)
         MockURLProtocol.responseDelay = 0.3
         MockURLProtocol.responseProvider = { url in
             (Color.random().image(Constants.imageSize).pngData()!, Mock.makeResponse(url: url))
         }
 
         measureMetrics([.wallClockTime], automaticallyStartMeasuring: true) {
-            let fetcher = ImageFetcher(Self.cache, session: session, maxConcurrent: Constants.maxConcurrent)
+            let fetcher = ImageFetcher(Self.cache, networking: Networking(.mock), imageProcessor: MockImageProcessor())
 
             let exp = expectation(description: "Finished")
             Task {
                 for iteration in 0 ..< Constants.batchCount {
-                    try await withThrowingTaskGroup(of: ImageResult.self) { group in
+                    try await withThrowingTaskGroup(of: ImageSource.self) { group in
                         for request in 0 ..< Constants.requestCount {
                             group.addTask {
                                 async let image = fetcher.load(Self.makeURL(iteration * Constants.requestCount + request))
-                                return await image
+                                return try await image
                             }
                         }
                         try await group.waitForAll()
