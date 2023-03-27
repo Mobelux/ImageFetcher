@@ -27,7 +27,17 @@
 
 import Foundation
 
+/// A class of types responsible for decompressing and processing image data.
 public protocol ImageProcessing {
+    /// Decompressed an image from the given data.
+    /// - Parameter data: The image data.
+    /// - Returns: The decompressed image.
     func decompress(_ data: Data) async throws -> Image
+
+    /// Processes an image from the given data and configuration.
+    /// - Parameters:
+    ///   - data: The image data.
+    ///   - configuration: The configuation of the image to by processed..
+    /// - Returns: The processed image.
     func process(_ data: Data, configuration: ImageConfiguration) async throws -> Image
 }
