@@ -96,6 +96,7 @@ public final class ImageProcessor: ImageProcessing {
         }
     }
 
+    /// Cancels all queued and executing operations.
     public func cancelAll() {
         queue.cancelAllOperations()
     }
@@ -107,8 +108,6 @@ extension Operation {
     static let isFinishedKey = "isFinished"
     static let isExecutingKey = "isExecuting"
 }
-
-// MARK: - Operation
 
 public final class ImageOperation: Operation {
     public enum Work: Equatable {

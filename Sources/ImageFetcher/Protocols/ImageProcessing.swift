@@ -40,4 +40,7 @@ public protocol ImageProcessing {
     ///   - configuration: The configuation of the image to by processed..
     /// - Returns: The processed image.
     func process(_ data: Data, configuration: ImageConfiguration) async throws -> Image
+
+    /// Cancels all queued and executing operations.
+    func cancelAll() 
 }

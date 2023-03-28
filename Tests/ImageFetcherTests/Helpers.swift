@@ -125,17 +125,20 @@ struct MockImageProcessor: ImageProcessing {
     var processDelay: TimeInterval? = nil
     var onDecompress: (Data) async throws -> Image
     var onProcess: (Data, ImageConfiguration) async throws -> Image
+    var onCancellAll: () -> Void
 
     init(
         decompressDelay: TimeInterval? = nil,
         processDelay: TimeInterval? = nil,
         onDecompress: @escaping (Data) async throws -> Image = { Image(data: $0)! },
-        onProcess: @escaping (Data, ImageConfiguration) async throws -> Image = { data, _ in Image(data: data)! }
+        onProcess: @escaping (Data, ImageConfiguration) async throws -> Image = { data, _ in Image(data: data)! },
+        onCancellAll: @escaping () -> Void = {}
     ) {
         self.decompressDelay = decompressDelay
         self.processDelay = processDelay
         self.onDecompress = onDecompress
         self.onProcess = onProcess
+        self.onCancellAll = onCancellAll
     }
 
     func decompress(_ data: Data) async throws -> Image {
@@ -150,5 +153,9 @@ struct MockImageProcessor: ImageProcessing {
             try await Task.sleep(nanoseconds: UInt64(processDelay * 1_000_000_000))
         }
         return try await onProcess(data, configuration)
+    }
+
+    func cancelAll() {
+        onCancellAll()
     }
 }
