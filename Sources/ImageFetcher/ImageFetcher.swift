@@ -176,21 +176,6 @@ public extension ImageFetcher {
         try await cache.cache(data, key: key.key)
     }
 
-    /// Saves an image to the cache.
-    /// - Parameters:
-    ///   - image: The image instance.
-    ///   - key: The configuation of the image to be saved.
-    func cache(_ image: Image, key: ImageConfiguration) throws {
-        guard let data = image.pngData() else {
-            throw NSError(
-                domain: "ImageFetcher.mobelux.com",
-                code: 500,
-                userInfo: [NSLocalizedDescriptionKey: "Could not convert image to PNG"])
-        }
-
-        try cache.syncCache(data, key: key.key)
-    }
-
     /// Loads an image from the cache.
     /// - Parameter key: The url of the image to load.
     /// - Returns:An image instance that has been previously cached. Nil if not found.
