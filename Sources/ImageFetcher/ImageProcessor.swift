@@ -42,7 +42,7 @@ public final class ImageProcessor: ImageProcessing {
     /// Processes an image from the given data and configuration.
     /// - Parameters:
     ///   - data: The image data.
-    ///   - configuration: The configuation of the image to by processed..
+    ///   - configuration: The configuation of the image to by processed.
     /// - Returns: The processed image.
     public func process(_ data: Data, configuration: ImageConfiguration) async throws -> Image {
         guard let image = Image(data: data), let editedImage = image.edit(configuration: configuration) else {
