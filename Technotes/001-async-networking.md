@@ -215,11 +215,15 @@ This proposal also removes the ability to limit concurrent requests and cache lo
 
 ## Performance
 
-The proposed design only tries to limit concurrency when processing images.
+The proposed design only tries to limit concurrency when processing images. I used both the current and the proposed library to load images from JSONPlaceholder in a collection view:
 
-CPU Usage (via Time Profiler) and Requests on an iPad Pro with maxConcurrent = 2 when displaying images from JSONPlaceholder.
+![Demo App View](images/001-profiled-app-view.png)
+
+I profiled this on an iPad Pro with `maxConcurrent = 2` for both libraries to compare performance and resource usage.
 
 ### Current Implementation
+
+CPU Usage (via Time Profiler) and Requests:
 
 ![Current: Time Profiler](images/001-time-profiler-current.png)
 
@@ -232,6 +236,8 @@ Activity per CPU:
 ![Current: CPU](images/001-activity-current.png)
 
 ### Proposed Implementation
+
+CPU Usage (via Time Profiler) and Requests:
 
 ![Proposed: Time Profiler](images/001-time-profiler-proposed.png)
 
