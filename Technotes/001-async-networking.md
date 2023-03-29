@@ -207,6 +207,8 @@ This proposal changes the `tasks` collection to a `Dictionary` and first checks 
 
 I replaced `ImageFetcherTask` by providing direct access to the underlying `Task`, which offers access to the request’s eventual value and a `cancel()` method. The result is more restricted but safer since we remove possibility of concurrently reading/writing task members.
 
+`ImageFetcher` will use an `NSLock` to ensure thread-safe access to `tasks`. I considered making it an `actor` but that seems like overkill when we only need to protect `tasks` and all access to it will be very quick.
+
 ### Managing Concurrency
 
 This proposal also removes the ability to limit concurrent requests and cache lookups via `maxConcurrent` by making the cooperative thread pool responsible for managing those operations. Instead, `maxConcurrent` is limited to controlling concurrent processing of image data ultimately performed by the `Image.decompress(...)` method. I reasoned that this represents the most expensive operation performed by `ImageFetcher` and the one the OS is least suited to manage. [Previous efforts](https://github.com/Mobelux/ImageFetcher/pull/6#issuecomment-1115291685) at limiting concurrency outside of an `OpertionQueue` were not especially fruitful.
