@@ -217,7 +217,7 @@ This proposal also removes the ability to limit concurrent requests and cache lo
 
 The proposed design only tries to limit concurrency when processing images. I used both the current and the proposed library to load images from JSONPlaceholder in a collection view:
 
-![Demo App View](images/001-profiled-app-view.png)
+![Demo App View](images/001-profiled-app-view.jpeg)
 
 I profiled this on an iPad Pro with `maxConcurrent = 2` for both libraries to compare performance and resource usage.
 
