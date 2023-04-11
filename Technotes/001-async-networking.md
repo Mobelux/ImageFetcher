@@ -157,7 +157,7 @@ Given that I would expect all future uses of `ImageFetcher` to take advantage of
 
 #### `Cache`
 
-No major changes here; using the async methods of `DiskCache`'s `Cache` protocol.
+No major changes here; using the async methods of `DiskCache`'s `Cache` protocol. I anticipate using the [`MockCache` implementation](https://github.com/Mobelux/ImageFetcher/blob/0853f94b411b035b7f414bc8d562dcf5bbdbdaa5/Tests/ImageFetcherTests/Helpers.swift#L103-L165) added in [#14](https://github.com/Mobelux/ImageFetcher/pull/14).
 
 #### `Networking`
 
@@ -169,7 +169,19 @@ public struct Networking {
 }
 ```
 
-This solution will be much easier to mock during testing and will support cooperative cancellation.
+This solution adds support for cooperative cancellation and will be very easy to mock during testing:
+
+```swift
+enum Mock {
+    static let data = Data()
+}
+
+extension Networking {
+    static var mock = Networking { _ in
+        Mock.data
+    }
+}
+```
 
 #### `ImageProcessing`
 
@@ -185,6 +197,8 @@ public protocol ImageProcessing {
 Until custom executors are supported it seems that Swift Concurrency doesn't really support any attempt to limit the number of threads dedicated to a particular task / set of tasks. The main idea behind this separate object is to abstract this usage of the older concurrency model.
 
 I do expect (and preliminary testing seems to indicate) the cooperative thread pool to be good at handling network requests and cooperative task cancellation.
+
+There are a number of different ways to resize images that offer different tradeoffs; NSHipster [discusses 5 of them in this post](https://nshipster.com/image-resizing/), for example. By specifying an `ImageProcessing` protcol we allow library consumers to define an alternatice implementation where different performance considerations warrant it. It also permits the implementation of a mock version for testing.
 
 ## Notable Changes
 
