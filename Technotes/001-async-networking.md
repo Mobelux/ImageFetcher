@@ -211,7 +211,7 @@ I replaced `ImageFetcherTask` by providing direct access to the underlying `Task
 
 ### Managing Concurrency
 
-This proposal also removes the ability to limit concurrent requests and cache lookups via `maxConcurrent` by making the cooperative thread pool responsible for managing those operations. Instead, `maxConcurrent` is limited to controlling concurrent processing of image data ultimately performed by the `Image.decompress(...)` method. I reasoned that this represents the most expensive operation performed by `ImageFetcher` and the one the OS is least suited to manage. [Previous efforts](https://github.com/Mobelux/ImageFetcher/pull/6#issuecomment-1115291685) at limiting concurrency outside of an `OpertionQueue` were not especially fruitful.
+This proposal also removes the ability to limit concurrent requests and cache lookups via `maxConcurrent` by making the cooperative thread pool responsible for managing those operations. Instead, `maxConcurrent` is limited to controlling concurrent processing of image data ultimately performed by the `Image.decompress(...)` method. I reasoned that this represents the most expensive operation performed by `ImageFetcher` and the one the OS is least suited to manage. [Previous efforts](https://github.com/Mobelux/ImageFetcher/pull/6#issuecomment-1115291685) at limiting concurrency outside of an `OperationQueue` were not especially fruitful.
 
 ## Performance
 
