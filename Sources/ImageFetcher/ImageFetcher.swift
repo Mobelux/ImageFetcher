@@ -42,6 +42,7 @@ import UIKit
 import DataOperation
 import DiskCache
 
+/// An object that downloads and caches images.
 public final class ImageFetcher: ImageFetching {
     internal let cache: Cache
     internal let imageProcessor: ImageProcessing
@@ -49,12 +50,18 @@ public final class ImageFetcher: ImageFetching {
     private let lock = NSLock()
     private var tasks: [String: Task<ImageSource, Error>] = [:]
 
+    /// The number of active tasks.
     public var taskCount: Int {
         lock.lock()
         defer { lock.unlock() }
         return tasks.count
     }
 
+    /// Creates an image fetcher with the given dependencies.
+    /// - Parameters:
+    ///   - cache: A type that caches data.
+    ///   - networking: A wrapper for performing a sync network requests.
+    ///   - imageProcessor: A type that processes images.
     public init(
         _ cache: Cache,
         networking: Networking = .init(),
@@ -128,10 +135,16 @@ public extension ImageFetcher {
         task.cancel()
     }
 
+    /// Returns the task associated with the given url, if one exists.
+    /// - Parameter url: The url of the image to be downloaded.
+    /// - Returns: The task downloading the given url.
     subscript (_ url: URL) -> Task<ImageSource, Error>? {
         getTask(ImageConfiguration(url: url))
     }
 
+    /// Returns the task associated with the given configuration, if one exists.
+    /// - Parameter url: The configuration of the image to be downloaded.
+    /// - Returns: The task downloading the given configuration.
     subscript (_ imageConfiguration: ImageConfiguration) -> Task<ImageSource, Error>? {
         getTask(imageConfiguration)
     }

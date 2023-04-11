@@ -34,4 +34,5 @@ public protocol ImageConfigurationFetching {
     subscript (_ imageConfiguration: ImageConfiguration) -> Task<ImageSource, Error>? { get }
 }
 
+/// A class of types that download and cache images.
 public protocol ImageFetching: ImageURLFetching & ImageConfigurationFetching {}
