@@ -244,3 +244,7 @@ CPU Usage (via Time Profiler) and Requests:
 Activity per CPU:
 
 ![Proposed: CPU](images/001-activity-proposed.png)
+
+Task Detail:
+
+![Task Detail](images/001-task-detail.png)
