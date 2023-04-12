@@ -128,10 +128,16 @@ public extension ImageFetcher {
         task.cancel()
     }
 
+    /// Returns the `Task` associated with the given url, if one exists.
+    /// - Parameter url: The url of the image to be downloaded.
+    /// - Returns: The parent task of the image loading operation.
     subscript (_ url: URL) -> Task<ImageSource, Error>? {
         getTask(ImageConfiguration(url: url))
     }
 
+    /// Returns the `Task` associated with the given configuration, if one exists
+    /// - Parameter url: The configuration of the image to be downloaded.
+    /// - Returns: The parent task of the image loading operation.
     subscript (_ imageConfiguration: ImageConfiguration) -> Task<ImageSource, Error>? {
         getTask(imageConfiguration)
     }
