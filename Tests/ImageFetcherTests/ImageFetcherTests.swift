@@ -33,7 +33,7 @@ final class ImageFetcherTests: XCTestCase {
         _ = await fetcher.load(Mock.baseURL)
         exp.fulfill()
 
-        wait(for: [exp], timeout: 1.0)
+        await fulfillment(of: [exp], timeout: 1.0)
 
         let expected = 0
         let actual = fetcher.taskCount
