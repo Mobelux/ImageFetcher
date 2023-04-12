@@ -64,14 +64,14 @@ public final class ImageFetcher: ImageFetching {
 
 // MARK: - Public API Methods
 public extension ImageFetcher {
-    /// Builds a `ImageLoaderTask`. If the result of the image configuration is cached, the task will be returned immediately. Otherwise a download operation will be kicked off.
+    /// Builds an `ImageLoaderTask`. If the result of the image configuration is cached, the task will be returned immediately. Otherwise a download operation will be kicked off.
     /// - Parameter url: The url of the image to be downloaded.
     /// - Returns: An instance of `ImageLoaderTask`. Be sure to check `result` before adding a handler.
     func task(_ url: URL) async -> ImageFetcherTask {
         await task(ImageConfiguration(url: url))
     }
 
-    /// Builds a `ImageLoaderTask`. If the result of the image configuration is cached, the task will be returned immediately. Otherwise a download operation will be kicked off.
+    /// Builds an `ImageLoaderTask`. If the result of the image configuration is cached, the task will be returned immediately. Otherwise a download operation will be kicked off.
     /// - Parameter imageConfiguration: The configuation of the image to be downloaded.
     /// - Returns: An instance of `ImageLoaderTask`. Be sure to check `result` before adding a handler.
     func task(_ imageConfiguration: ImageConfiguration) async -> ImageFetcherTask {
