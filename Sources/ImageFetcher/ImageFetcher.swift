@@ -185,10 +185,16 @@ public extension ImageFetcher {
         task.handler = nil
     }
 
+    /// Returns the `ImageLoaderTask` associated with the given url, if one exists
+    /// - Parameter url: The url of the image to be downloaded.
+    /// - Returns: An instance of `ImageLoaderTask`. Be sure to check `result` before adding a handler.
     subscript (_ url: URL) -> ImageFetcherTask? {
         getTask(ImageConfiguration(url: url))
     }
 
+    /// Returns the `ImageLoaderTask` associated with the given configuration, if one exists
+    /// - Parameter url: The configuration of the image to be downloaded.
+    /// - Returns: An instance of `ImageLoaderTask`. Be sure to check `result` before adding a handler.
     subscript (_ imageConfiguration: ImageConfiguration) -> ImageFetcherTask? {
         getTask(imageConfiguration)
     }
@@ -199,7 +205,7 @@ public extension ImageFetcher {
     }
 
     /// Deletes image from the cache
-    /// - Parameter imageConfiguration: The url of the image to be deleted.
+    /// - Parameter url: The url of the image to be deleted.
     func delete(_ url: URL) throws {
         try delete(ImageConfiguration(url: url))
     }
