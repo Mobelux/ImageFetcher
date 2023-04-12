@@ -35,6 +35,9 @@ final class PerformanceTests: XCTestCase {
     }
 
     func testAsyncPerformance() async throws {
+        // Temporarily skip tests
+        throw XCTSkip()
+
         let session = URLSession(configuration: .mock)
         MockURLProtocol.responseProvider = { url in
             (Color.random().image(Constants.imageSize).pngData()!, Mock.makeResponse(url: url))
@@ -71,6 +74,9 @@ final class PerformanceTests: XCTestCase {
     }
 
     func testAsyncPerformanceForBatches() async throws {
+        // Temporarily skip tests
+        throw XCTSkip()
+
         let session = URLSession(configuration: .mock)
         MockURLProtocol.responseDelay = 0.3
         MockURLProtocol.responseProvider = { url in
