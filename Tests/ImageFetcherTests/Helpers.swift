@@ -120,6 +120,70 @@ extension URLSessionConfiguration {
     }
 }
 
+class MockCache: Cache {
+    struct CacheError: Error {
+        let reason: String
+    }
+
+    var onCache: (Data, String) throws -> ()
+    var onData: (String) throws -> Data
+    var onDelete: (String) throws -> ()
+    var onDeleteAll: () throws -> ()
+    var onFileURL: (String) -> URL
+
+    init(
+        onCache: @escaping (Data, String) throws -> () = { _, _ in },
+        onData: @escaping (String) throws -> Data = { _ in Data() },
+        onDelete: @escaping (String) throws -> () = { _ in },
+        onDeleteAll: @escaping () throws -> () = { },
+        onFileURL: @escaping (String) -> URL = { _ in URL(fileURLWithPath: "") }
+    ) {
+        self.onCache = onCache
+        self.onData = onData
+        self.onDelete = onDelete
+        self.onDeleteAll = onDeleteAll
+        self.onFileURL = onFileURL
+    }
+
+    func syncCache(_ data: Data, key: String) throws {
+        try onCache(data, key)
+    }
+
+    func syncData(_ key: String) throws -> Data {
+        try onData(key)
+    }
+
+    func syncDelete(_ key: String) throws {
+        try onDelete(key)
+    }
+
+    func syncDeleteAll() throws {
+        try onDeleteAll()
+    }
+
+    func fileURL(_ key: String) -> URL {
+        onFileURL(key)
+    }
+
+    // Async support
+
+    func cache(_ data: Data, key: String) async throws {
+        try onCache(data, key)
+    }
+
+    func data(_ key: String) async throws -> Data {
+        try onData(key)
+    }
+
+    func delete(_ key: String) async throws {
+        try onDelete(key)
+    }
+
+    func deleteAll() async throws {
+        try onDeleteAll()
+    }
+}
+
 struct MockImageProcessor: ImageProcessing {
     var decompressDelay: TimeInterval? = nil
     var processDelay: TimeInterval? = nil
@@ -152,3 +216,29 @@ struct MockImageProcessor: ImageProcessing {
         return try await onProcess(data, configuration)
     }
 }
+
+#if swift(<5.8)
+extension XCTestCase {
+    /// Waits on a group of expectations for up to the specified timeout, optionally enforcing their order of fulfillment.
+    ///
+    /// This allows use of Xcode 14.3's `XCTestCase.fulfillment(of:timeout:enforceOrder:)` method while maintaining
+    /// compatibility with previous versions.
+    ///
+    /// - Parameters:
+    ///   - expectations: An array of expectations the test must satisfy.
+    ///   - seconds: The time, in seconds, the test allows for the fulfillment of the expectations. The default timeout
+    ///   allows the test to run until it reaches its execution time allowance.
+    ///   - enforceOrderOfFulfillment: If `true`, the test must satisfy the expectations in the order they appear in
+    ///   the array.
+    func fulfillment(
+        of expectations: [XCTestExpectation],
+        timeout seconds: TimeInterval = .infinity,
+        enforceOrder enforceOrderOfFulfillment: Bool = false
+    ) async {
+        await MainActor.run {
+            wait(for: expectations, timeout: seconds, enforceOrder: enforceOrderOfFulfillment)
+        }
+        return try await onProcess(data, configuration)
+    }
+}
+#endif

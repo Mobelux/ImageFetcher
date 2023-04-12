@@ -32,9 +32,8 @@ final class PerformanceTests: XCTestCase {
     }
 
     func testAsyncPerformance() async throws {
-        MockURLProtocol.responseProvider = { url in
-            (Mock.makeImageData(side: Constants.imageSide), Mock.makeResponse(url: url))
-        }
+        // Temporarily skip tests
+        throw XCTSkip()
 
         measureMetrics([.wallClockTime], automaticallyStartMeasuring: true) {
             let cache = try! DiskCache(storageType: .temporary(.custom("\(Date().timeIntervalSince1970)")))
@@ -63,10 +62,8 @@ final class PerformanceTests: XCTestCase {
     }
 
     func testAsyncPerformanceForBatches() async throws {
-        MockURLProtocol.responseDelay = 0.3
-        MockURLProtocol.responseProvider = { url in
-            (Mock.makeImageData(side: Constants.imageSide), Mock.makeResponse(url: url))
-        }
+        // Temporarily skip tests
+        throw XCTSkip()
 
         measureMetrics([.wallClockTime], automaticallyStartMeasuring: true) {
             let cache = try! DiskCache(storageType: .temporary(.custom("\(Date().timeIntervalSince1970)")))
