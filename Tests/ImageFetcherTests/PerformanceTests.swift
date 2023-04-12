@@ -3,7 +3,6 @@ import XCTest
 
 final class PerformanceTests: XCTestCase {
     enum Constants {
-        static let baseURLString = "https://example.com"
         static let iterationCount = 500
         static let batchCount = 5
         static let requestCount = 10
@@ -35,15 +34,6 @@ final class PerformanceTests: XCTestCase {
         }
     }
 
-    static func makeURL(_ iteration: Int) -> URL {
-        // Periodically hit the cache
-        if iteration % 7 == 0 {
-            return URL(string: Constants.baseURLString)!
-        }
-
-        return URL(string: "\(Constants.baseURLString)/\(iteration)")!
-    }
-
     func testAsyncPerformance() async throws {
         let session = URLSession(configuration: .mock)
         MockURLProtocol.responseProvider = { url in
@@ -58,7 +48,7 @@ final class PerformanceTests: XCTestCase {
                 try await withThrowingTaskGroup(of: ImageResult.self) { group in
                     for iteration in 0 ..< Constants.iterationCount {
                         group.addTask {
-                            async let image = fetcher.load(Self.makeURL(iteration))
+                            async let image = fetcher.load(Mock.makeURL(iteration))
                             return await image
                         }
                     }
@@ -96,7 +86,7 @@ final class PerformanceTests: XCTestCase {
                     try await withThrowingTaskGroup(of: ImageResult.self) { group in
                         for request in 0 ..< Constants.requestCount {
                             group.addTask {
-                                async let image = fetcher.load(Self.makeURL(iteration * Constants.requestCount + request))
+                                async let image = fetcher.load(Mock.makeURL(iteration * Constants.requestCount + request))
                                 return await image
                             }
                         }
