@@ -40,6 +40,31 @@ final class ImageFetcherTests: XCTestCase {
         XCTAssertEqual(expected, actual)
     }
 
+    func testContinuationsAreNotLeaked() async throws {
+        let session = URLSession(configuration: .mock)
+        MockURLProtocol.responseDelay = 5.0
+        MockURLProtocol.responseProvider = { url in
+            (Color.random().image(CGSize(width: 100, height: 100)).pngData()!, Mock.makeResponse(url: url))
+        }
+
+        let cache = MockCache(onData: { _ in throw MockCache.CacheError(reason: "File missing") })
+        let sut = ImageFetcher(cache, session: session)
+
+        let url = URL(string: "https://example.com")!
+        async let result = await sut.load(url)
+
+        try await Task.sleep(nanoseconds: NSEC_PER_SEC)
+        sut.cancel(url)
+
+        let awaitedResult = await result
+        switch awaitedResult {
+        case .failure(.noResult):
+            return
+        default:
+            XCTFail("Result \(awaitedResult) was not a cancellation error")
+        }
+    }
+
     func testSubscriptAccess() async throws {
         let requestCount: Int = 100
 

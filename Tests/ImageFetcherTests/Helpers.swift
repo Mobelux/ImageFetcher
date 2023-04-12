@@ -108,3 +108,67 @@ extension URLSessionConfiguration {
         return config
     }
 }
+
+class MockCache: Cache {
+    struct CacheError: Error {
+        let reason: String
+    }
+
+    var onCache: (Data, String) throws -> ()
+    var onData: (String) throws -> Data
+    var onDelete: (String) throws -> ()
+    var onDeleteAll: () throws -> ()
+    var onFileURL: (String) -> URL
+
+    init(
+        onCache: @escaping (Data, String) throws -> () = { _, _ in },
+        onData: @escaping (String) throws -> Data = { _ in Data() },
+        onDelete: @escaping (String) throws -> () = { _ in },
+        onDeleteAll: @escaping () throws -> () = { },
+        onFileURL: @escaping (String) -> URL = { _ in URL(fileURLWithPath: "") }
+    ) {
+        self.onCache = onCache
+        self.onData = onData
+        self.onDelete = onDelete
+        self.onDeleteAll = onDeleteAll
+        self.onFileURL = onFileURL
+    }
+
+    func syncCache(_ data: Data, key: String) throws {
+        try onCache(data, key)
+    }
+
+    func syncData(_ key: String) throws -> Data {
+        try onData(key)
+    }
+
+    func syncDelete(_ key: String) throws {
+        try onDelete(key)
+    }
+
+    func syncDeleteAll() throws {
+        try onDeleteAll()
+    }
+
+    func fileURL(_ key: String) -> URL {
+        onFileURL(key)
+    }
+
+    // Async support
+
+    func cache(_ data: Data, key: String) async throws {
+        try onCache(data, key)
+    }
+
+    func data(_ key: String) async throws -> Data {
+        try onData(key)
+    }
+
+    func delete(_ key: String) async throws {
+        try onDelete(key)
+    }
+
+    func deleteAll() async throws {
+        try onDeleteAll()
+    }
+}

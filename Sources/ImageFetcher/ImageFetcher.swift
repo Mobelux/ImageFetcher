@@ -181,8 +181,9 @@ public extension ImageFetcher {
             return
         }
 
-        task.cancel()
+        task.result = .failure(.noResult)
         task.handler = nil
+        task.cancel()
     }
 
     /// Returns the `ImageLoaderTask` associated with the given url, if one exists
