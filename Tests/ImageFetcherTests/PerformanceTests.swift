@@ -22,10 +22,6 @@ final class PerformanceTests: XCTestCase {
         try? FileManager.default.removeItem(at: directoryURL)
     }
 
-    override func tearDown() {
-        super.tearDown()
-    }
-
     func testAsyncPerformance() async throws {
         // Temporarily skip tests
         throw XCTSkip()
