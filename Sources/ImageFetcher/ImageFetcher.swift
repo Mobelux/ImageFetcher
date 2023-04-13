@@ -39,7 +39,6 @@ extension NSImage {
 #else
 import UIKit
 #endif
-import DataOperation
 import DiskCache
 
 /// An object that downloads and caches images.
@@ -97,7 +96,7 @@ public extension ImageFetcher {
             return decompressTask
         } else {
             let downloadTask = Task(priority: imageConfiguration.priority) {
-                try await self.download(imageConfiguration)
+                try await download(imageConfiguration)
             }
 
             insertTask(downloadTask, key: imageConfiguration)

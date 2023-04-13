@@ -26,7 +26,6 @@
 //
 
 import Foundation
-import DataOperation
 
 public enum ImageError: LocalizedError {
     case cannotParse
@@ -40,15 +39,6 @@ public enum ImageError: LocalizedError {
         case .noResult: return NSLocalizedString("ImageLoader.noResult", comment: "")
         case .unknown: return NSLocalizedString("Generic.unknownError", comment: "")
         case .custom(let message): return message
-        }
-    }
-}
-
-extension ImageError {
-    static func convertFrom(_ dataError: DataError) -> ImageError {
-        switch dataError {
-        case .unknown: return .unknown
-        case .custom(let message): return .custom(message)
         }
     }
 }
