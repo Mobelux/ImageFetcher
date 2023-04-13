@@ -28,7 +28,7 @@
 import Foundation
 
 public final class ImageProcessor: ImageProcessing {
-    let queue: OperationQueue
+    private let queue: OperationQueue
 
     public init(
         queue: OperationQueue = OperationQueue(),
@@ -109,24 +109,24 @@ extension Operation {
     static let isExecutingKey = "isExecuting"
 }
 
-public final class ImageOperation: Operation {
-    public enum Work: Equatable {
+final class ImageOperation: Operation {
+    enum Work: Equatable {
         case decompress
         case edit(ImageConfiguration)
     }
 
     let data: Data
     let work: Work
-    public private(set) var result: Result<Image, ImageError>?
+    private(set) var result: Result<Image, ImageError>?
 
-    public init(data: Data, work: Work) {
+    init(data: Data, work: Work) {
         self.data = data
         self.work = work
     }
 
-    override public func start() {
+    override func start() {
         guard !isCancelled else {
-            // TODO: handle better
+            // TODO: handle better with cancellation error
             return update(.failure(.noResult))
         }
 
@@ -150,16 +150,16 @@ public final class ImageOperation: Operation {
         }
     }
 
-    override public var isExecuting: Bool {
-        return result == nil
+    override var isExecuting: Bool {
+        result == nil
     }
 
-    override public var isFinished: Bool {
-        return result != nil
+    override var isFinished: Bool {
+        result != nil
     }
 
-    override public var isAsynchronous: Bool {
-        return true
+    override var isAsynchronous: Bool {
+        true
     }
 }
 
