@@ -45,9 +45,7 @@ final class ImageFetcherTests: XCTestCase {
         let requestCount: Int = 100
 
         let cache = MockCache(onData: { _ in throw MockCache.CacheError(reason: "File missing") })
-        let networking = Networking.mock(delay: 0.1) { url in
-            (Color.random().image(CGSize(width: 100, height: 100)).pngData()!, Mock.makeResponse(url: url))
-        }
+        let networking = Networking.mock(delay: 0.1) { (Mock.makeImageData(side: 100), Mock.makeResponse(url: $0)) }
         let sut = ImageFetcher(cache, networking: networking, imageProcessor: MockImageProcessor())
 
         async let images = await withThrowingTaskGroup(of: Image.self, returning: [Image].self) { taskGroup in
