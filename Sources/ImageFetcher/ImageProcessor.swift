@@ -27,9 +27,14 @@
 
 import Foundation
 
+/// An object that decompresses and processes image data.
 public final class ImageProcessor: ImageProcessing {
     private let queue: Queue
 
+    /// Creates an image processor with the given queue and concurrent operation limit.
+    /// - Parameters:
+    ///   - queue: A queue that regulates the execution of operations.
+    ///   - maxConcurrent: The maximum number of queued operations that can run at the same time.
     public init(
         queue: Queue = OperationQueue(),
         maxConcurrent: Int? = 2

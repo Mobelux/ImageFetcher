@@ -8,7 +8,9 @@
 
 import Foundation
 
+/// A class of types whose instances hold a hash key.
 public protocol Keyable {
+    /// The hash key associated with this instance.
     var key: String { get }
 }
 
