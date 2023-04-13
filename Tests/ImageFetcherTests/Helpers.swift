@@ -69,54 +69,21 @@ enum Mock {
     }
 }
 
-final class MockURLProtocol: URLProtocol {
-    static var responseQueue: DispatchQueue = .global()
-    static var responseDelay: TimeInterval? = nil
-    static var responseProvider: (URL) throws -> (Data, HTTPURLResponse) = { url in
-        (Data(), Mock.makeResponse(url: url))
-    }
-
-    override class func canInit(with request: URLRequest) -> Bool { true }
-
-    override class func canonicalRequest(for request: URLRequest) -> URLRequest { request }
-
-    static func reset() {
-        responseDelay = nil
-        responseProvider = { (Data(), Mock.makeResponse(url: $0)) }
-    }
-
-    override func startLoading() {
-        if let delay = Self.responseDelay {
-            guard client != nil else { return }
-            Self.responseQueue.asyncAfter(deadline: .now() + delay) {
-                self.respond()
-            }
-        } else {
-            respond()
-        }
-    }
-
-    override func stopLoading() { }
-
-    private func respond() {
-        guard let client = client else { return }
-        do {
-            let url = try XCTUnwrap(request.url)
-            let response = try Self.responseProvider(url)
-            client.urlProtocol(self, didReceive: response.1, cacheStoragePolicy: .notAllowed)
-            client.urlProtocol(self, didLoad: response.0)
-        } catch {
-            client.urlProtocol(self, didFailWithError: error)
-        }
-        client.urlProtocolDidFinishLoading(self)
-    }
-}
-
-extension URLSessionConfiguration {
-    static var mock: URLSessionConfiguration {
-        let config = URLSessionConfiguration.ephemeral
-        config.protocolClasses = [MockURLProtocol.self]
-        return config
+extension Networking {
+    static func mock(
+        delay: TimeInterval? = nil,
+        responseProvider: @escaping (URL) throws -> (Data, HTTPURLResponse) = { (Data(), Mock.makeResponse(url: $0)) }
+    ) -> Self {
+        .init(
+            load: { request in
+                if let delay {
+                    try await Task.sleep(nanoseconds: UInt64(delay * 1_000_000_000))
+                    try Task.checkCancellation()
+                    return try responseProvider(request.url!)
+                } else {
+                    return try responseProvider(request.url!)
+                }
+            })
     }
 }
 
@@ -205,6 +172,7 @@ struct MockImageProcessor: ImageProcessing {
     func decompress(_ data: Data) async throws -> Image {
         if let decompressDelay {
             try await Task.sleep(nanoseconds: UInt64(decompressDelay * 1_000_000_000))
+            try Task.checkCancellation()
         }
         return try await onDecompress(data)
     }
@@ -212,6 +180,7 @@ struct MockImageProcessor: ImageProcessing {
     func process(_ data: Data, configuration: ImageConfiguration) async throws -> Image {
         if let processDelay {
             try await Task.sleep(nanoseconds: UInt64(processDelay * 1_000_000_000))
+            try Task.checkCancellation()
         }
         return try await onProcess(data, configuration)
     }
@@ -238,7 +207,6 @@ extension XCTestCase {
         await MainActor.run {
             wait(for: expectations, timeout: seconds, enforceOrder: enforceOrderOfFulfillment)
         }
-        return try await onProcess(data, configuration)
     }
 }
 #endif
