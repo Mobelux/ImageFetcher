@@ -39,7 +39,6 @@ extension NSImage {
 #else
 import UIKit
 #endif
-import DataOperation
 import DiskCache
 
 public final class ImageFetcher: ImageFetching {
