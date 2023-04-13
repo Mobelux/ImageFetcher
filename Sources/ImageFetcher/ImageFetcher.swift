@@ -89,7 +89,7 @@ public extension ImageFetcher {
             return decompressTask
         } else {
             let downloadTask = Task(priority: imageConfiguration.priority) {
-                try await self.download(imageConfiguration)
+                try await download(imageConfiguration)
             }
 
             insertTask(downloadTask, key: imageConfiguration)
