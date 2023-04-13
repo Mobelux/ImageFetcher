@@ -2,23 +2,6 @@ import XCTest
 @testable import ImageFetcher
 
 final class ImageFetcherTests: XCTestCase {
-    override class func tearDown() {
-        super.tearDown()
-
-        guard let searchPath = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask)
-            .first else {
-            fatalError("\(#function) Fatal: Cannot get user directory.")
-        }
-
-        let directoryURL = searchPath.appendingPathComponent("com.mobelux.cache")
-
-        do {
-            try FileManager.default.removeItem(at: directoryURL)
-        } catch {
-            fatalError()
-        }
-    }
-
     override func tearDown() {
         super.tearDown()
         MockURLProtocol.reset()
@@ -28,7 +11,7 @@ final class ImageFetcherTests: XCTestCase {
         MockURLProtocol.responseProvider = { url in
             (Mock.makeImageData(side: 150), Mock.makeResponse(url: url))
         }
-        let cache = try DiskCache(storageType: .temporary(.custom("\(Date().timeIntervalSince1970)")))
+        let cache = MockCache(onData: { _ in throw MockCache.CacheError(reason: "File missing") })
         let fetcher = ImageFetcher(cache, networking: Networking(.mock), imageProcessor: MockImageProcessor())
 
         let exp = expectation(description: "Finished")
@@ -77,7 +60,8 @@ final class ImageFetcherTests: XCTestCase {
             (Color.random().image(CGSize(width: 100, height: 100)).pngData()!, Mock.makeResponse(url: url))
         }
 
-        let sut = ImageFetcher(Self.cache, session: session, maxConcurrent: 4)
+        let cache = MockCache(onData: { _ in throw MockCache.CacheError(reason: "File missing") })
+        let sut = ImageFetcher(cache, networking: Networking(.mock), imageProcessor: MockImageProcessor())
 
         async let images = await withThrowingTaskGroup(of: Image.self, returning: [Image].self) { taskGroup in
             for iteration in 0 ..< requestCount {
