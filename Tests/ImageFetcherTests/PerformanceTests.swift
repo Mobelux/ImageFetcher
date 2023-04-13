@@ -32,7 +32,7 @@ final class PerformanceTests: XCTestCase {
 
         measureMetrics([.wallClockTime], automaticallyStartMeasuring: true) {
             let cache = try! DiskCache(storageType: .temporary(.custom("\(Date().timeIntervalSince1970)")))
-            let networking = Networking.mock()
+            let networking = Networking.mock() { (Mock.makeImageData(side: Constants.imageSide), Mock.makeResponse(url: $0)) }
             let fetcher = ImageFetcher(cache, networking: networking, imageProcessor: MockImageProcessor())
 
             let exp = expectation(description: "Finished")
@@ -63,7 +63,7 @@ final class PerformanceTests: XCTestCase {
 
         measureMetrics([.wallClockTime], automaticallyStartMeasuring: true) {
             let cache = try! DiskCache(storageType: .temporary(.custom("\(Date().timeIntervalSince1970)")))
-            let networking = Networking.mock()
+            let networking = Networking.mock(delay: 0.3) { (Mock.makeImageData(side: Constants.imageSide), Mock.makeResponse(url: $0)) }
             let fetcher = ImageFetcher(cache, networking: networking, imageProcessor: MockImageProcessor())
 
             let exp = expectation(description: "Finished")
