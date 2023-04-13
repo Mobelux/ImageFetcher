@@ -8,10 +8,9 @@
 
 import Foundation
 
-public protocol Queue {
+public protocol Queue: AnyObject {
     var maxConcurrentOperationCount: Int { get set }
 
-    init()
     func addOperation(_ operation: Operation)
     func cancelAllOperations()
 }

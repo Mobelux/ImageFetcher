@@ -28,10 +28,10 @@
 import Foundation
 
 public final class ImageProcessor: ImageProcessing {
-    private let queue: OperationQueue
+    private let queue: Queue
 
     public init(
-        queue: OperationQueue = OperationQueue(),
+        queue: Queue = OperationQueue(),
         maxConcurrent: Int? = 2
     ) {
         self.queue = queue
