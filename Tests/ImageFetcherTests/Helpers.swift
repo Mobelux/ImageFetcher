@@ -71,18 +71,16 @@ enum Mock {
 
 extension Networking {
     static func mock(
-        delay: TimeInterval? = nil,
+        responseDelay: TimeInterval? = nil,
         responseProvider: @escaping (URL) throws -> (Data, HTTPURLResponse) = { (Data(), Mock.makeResponse(url: $0)) }
     ) -> Self {
         .init(
             load: { request in
-                if let delay {
-                    try await Task.sleep(nanoseconds: UInt64(delay * 1_000_000_000))
+                if let responseDelay {
+                    try await Task.sleep(nanoseconds: UInt64(responseDelay * 1_000_000_000))
                     try Task.checkCancellation()
-                    return try responseProvider(request.url!)
-                } else {
-                    return try responseProvider(request.url!)
                 }
+                return try responseProvider(request.url!)
             })
     }
 }
