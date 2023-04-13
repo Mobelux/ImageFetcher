@@ -19,11 +19,7 @@ final class PerformanceTests: XCTestCase {
         }
 
         let directoryURL = searchPath.appendingPathComponent("com.mobelux.cache")
-        do {
-            try FileManager.default.removeItem(at: directoryURL)
-        } catch {
-            fatalError()
-        }
+        try? FileManager.default.removeItem(at: directoryURL)
     }
 
     override func tearDown() {
