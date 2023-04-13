@@ -5,16 +5,16 @@ final class ImageFetcherTests: XCTestCase {
     func testCompletedTaskRemoval() async throws {
         let cache = MockCache(onData: { _ in throw MockCache.CacheError(reason: "File missing") })
         let networking = Networking.mock(delay: 0.1) { (Mock.makeImageData(side: 150), Mock.makeResponse(url: $0)) }
-        let fetcher = ImageFetcher(cache, networking: networking, imageProcessor: MockImageProcessor())
+        let sut = ImageFetcher(cache, networking: networking, imageProcessor: MockImageProcessor())
 
         let exp = expectation(description: "Finished")
-        _ = try await fetcher.load(Mock.baseURL)
+        _ = try await sut.load(Mock.baseURL)
         exp.fulfill()
 
         await fulfillment(of: [exp], timeout: 1.0)
 
         let expected = 0
-        let actual = fetcher.taskCount
+        let actual = sut.taskCount
         XCTAssertEqual(expected, actual)
     }
 
@@ -28,7 +28,7 @@ final class ImageFetcherTests: XCTestCase {
         let exp = expectation(description: "Request threw error")
         Task {
             do {
-                let result = try await sut.load(url)
+                _ = try await sut.load(url)
             } catch {
                 XCTAssert(error is CancellationError)
                 exp.fulfill()
