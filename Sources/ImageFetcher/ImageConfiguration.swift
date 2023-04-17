@@ -28,18 +28,27 @@
 import Foundation
 import CoreGraphics
 
-/*
- The set of parameters the `ImageLoader` uses to download an image.
- */
+extension TaskPriority: Hashable {}
+
+/// The set of parameters the ``ImageLoader`` uses to download an image.
 public struct ImageConfiguration: Hashable {
     public let url: URL
+    public let priority: TaskPriority?
     public let size: CGSize?
     public let constrain: Bool
     public let cornerRadius: Float
     public let scale: Float
 
-    public init(url: URL, size: CGSize? = nil, constrain: Bool = false, cornerRadius: Float = 0.0, scale: Float = 1.0) {
+    public init(
+        url: URL,
+        priority: TaskPriority? = nil,
+        size: CGSize? = nil,
+        constrain: Bool = false,
+        cornerRadius: Float = 0.0,
+        scale: Float = 1.0
+    ) {
         self.url = url
+        self.priority = priority
         self.size = size
         self.constrain = constrain
         self.cornerRadius = cornerRadius

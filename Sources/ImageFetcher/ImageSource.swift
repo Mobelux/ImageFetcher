@@ -1,10 +1,10 @@
 //
-//  ImageError.swift
+//  ImageSource.swift
 //  Mobelux
 //
 //  MIT License
 //
-//  Copyright (c) 2020 Mobelux LLC
+//  Copyright (c) 2023 Mobelux LLC
 //
 //  Permission is hereby granted, free of charge, to any person obtaining a copy
 //  of this software and associated documentation files (the "Software"), to deal
@@ -27,18 +27,16 @@
 
 import Foundation
 
-public enum ImageError: LocalizedError {
-    case cannotParse
-    case noResult
-    case unknown
-    case custom(String)
+public enum ImageSource {
+    case cached(Image)
+    case downloaded(Image)
 
-    public var errorDescription: String {
+    public var value: Image {
         switch self {
-        case .cannotParse: return NSLocalizedString("ImageLoader.cannotParse", comment: "")
-        case .noResult: return NSLocalizedString("ImageLoader.noResult", comment: "")
-        case .unknown: return NSLocalizedString("Generic.unknownError", comment: "")
-        case .custom(let message): return message
+        case .cached(let value):
+            return value
+        case .downloaded(let value):
+            return value
         }
     }
 }

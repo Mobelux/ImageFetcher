@@ -1,10 +1,10 @@
 //
-//  ImageError.swift
+//  ImageProcessing.swift
 //  Mobelux
 //
 //  MIT License
 //
-//  Copyright (c) 2020 Mobelux LLC
+//  Copyright (c) 2023 Mobelux LLC
 //
 //  Permission is hereby granted, free of charge, to any person obtaining a copy
 //  of this software and associated documentation files (the "Software"), to deal
@@ -27,18 +27,17 @@
 
 import Foundation
 
-public enum ImageError: LocalizedError {
-    case cannotParse
-    case noResult
-    case unknown
-    case custom(String)
+/// A class of types responsible for decompressing and processing image data.
+public protocol ImageProcessing {
+    /// Decompressed an image from the given data.
+    /// - Parameter data: The image data.
+    /// - Returns: The decompressed image.
+    func decompress(_ data: Data) async throws -> Image
 
-    public var errorDescription: String {
-        switch self {
-        case .cannotParse: return NSLocalizedString("ImageLoader.cannotParse", comment: "")
-        case .noResult: return NSLocalizedString("ImageLoader.noResult", comment: "")
-        case .unknown: return NSLocalizedString("Generic.unknownError", comment: "")
-        case .custom(let message): return message
-        }
-    }
+    /// Processes an image from the given data and configuration.
+    /// - Parameters:
+    ///   - data: The image data.
+    ///   - configuration: The configuation of the image to by processed.
+    /// - Returns: The processed image.
+    func process(_ data: Data, configuration: ImageConfiguration) async throws -> Image
 }

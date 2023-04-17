@@ -1,10 +1,10 @@
 //
-//  ResultType.swift
+//  ImageProcessor.swift
 //  Mobelux
 //
 //  MIT License
 //
-//  Copyright (c) 2020 Mobelux LLC
+//  Copyright (c) 2023 Mobelux LLC
 //
 //  Permission is hereby granted, free of charge, to any person obtaining a copy
 //  of this software and associated documentation files (the "Software"), to deal
@@ -27,16 +27,28 @@
 
 import Foundation
 
-public enum ResultType<T> {
-    case cached(T)
-    case downloaded(T)
-
-    public var value: T {
-        switch self {
-        case .cached(let value):
-            return value
-        case .downloaded(let value):
-            return value
+public final class ImageProcessor: ImageProcessing {
+    /// Decompressed an image from the given data.
+    /// - Parameter data: The image data.
+    /// - Returns: The decompressed image.
+    public func decompress(_ data: Data) async throws -> Image {
+        guard let image = Image(data: data)?.decompressed() else {
+            throw ImageError.cannotParse
         }
+
+        return image
+    }
+
+    /// Processes an image from the given data and configuration.
+    /// - Parameters:
+    ///   - data: The image data.
+    ///   - configuration: The configuation of the image to by processed.
+    /// - Returns: The processed image.
+    public func process(_ data: Data, configuration: ImageConfiguration) async throws -> Image {
+        guard let image = Image(data: data), let editedImage = image.edit(configuration: configuration) else {
+            throw ImageError.cannotParse
+        }
+
+        return editedImage
     }
 }
