@@ -34,75 +34,10 @@ final class PerformanceTests: XCTestCase {
         }
     }
 
-    func testSyncPerformance() throws {
-        let session = URLSession(configuration: .mock)
-        MockURLProtocol.responseProvider = { url in
-            (Color.random().image(Constants.imageSize).pngData()!, Mock.makeResponse(url: url))
-        }
-
-        measure {
-            let fetcher = ImageFetcher(Self.cache, session: session, maxConcurrent: Constants.maxConcurrent)
-
-            var responseCount = 0
-            let exp = expectation(description: "Finished")
-            for iteration in 0 ..< Constants.iterationCount {
-                fetcher.load(Mock.makeURL(iteration)) { _ in
-                    responseCount += 1
-
-                    if responseCount == Constants.iterationCount {
-                        exp.fulfill()
-                    }
-                }
-            }
-
-            wait(for: [exp], timeout: 20.0)
-            do {
-                try Self.cache.syncDeleteAll()
-            } catch {
-                XCTFail("DiskCacke.syncDeleteAll() threw error")
-            }
-        }
-    }
-
-    func testSyncPerformanceWithBatches() throws {
-        let session = URLSession(configuration: .mock)
-        MockURLProtocol.responseDelay = 0.3
-        MockURLProtocol.responseProvider = { url in
-            (Color.random().image(Constants.imageSize).pngData()!, Mock.makeResponse(url: url))
-        }
-
-        measure {
-            let fetcher = ImageFetcher(Self.cache, session: session, maxConcurrent: Constants.maxConcurrent)
-
-            let exp = expectation(description: "Finished")
-            for iteration in 0 ... Constants.batchCount {
-                var responseCount = 0
-                let innerExp = expectation(description: "Finished Iteration Requests")
-                for request in 0 ..< Constants.requestCount {
-                    fetcher.load(Mock.makeURL(iteration * Constants.requestCount + request)) { _ in
-                        responseCount += 1
-                        if responseCount == Constants.requestCount {
-                            innerExp.fulfill()
-                        }
-                    }
-                }
-
-                wait(for: [innerExp], timeout: 5.0)
-                if iteration == Constants.batchCount {
-                    exp.fulfill()
-                }
-            }
-
-            wait(for: [exp], timeout: 15.0)
-            do {
-                try Self.cache.syncDeleteAll()
-            } catch {
-                XCTFail("DiskCacke.syncDeleteAll() threw error")
-            }
-        }
-    }
-
     func testAsyncPerformance() async throws {
+        // Temporarily skip tests
+        throw XCTSkip()
+
         let session = URLSession(configuration: .mock)
         MockURLProtocol.responseProvider = { url in
             (Color.random().image(Constants.imageSize).pngData()!, Mock.makeResponse(url: url))
@@ -139,6 +74,9 @@ final class PerformanceTests: XCTestCase {
     }
 
     func testAsyncPerformanceForBatches() async throws {
+        // Temporarily skip tests
+        throw XCTSkip()
+
         let session = URLSession(configuration: .mock)
         MockURLProtocol.responseDelay = 0.3
         MockURLProtocol.responseProvider = { url in

@@ -22,7 +22,7 @@ final class ImageFetcherTests: XCTestCase {
         }
     }
 
-    func testCompletedTaskRemoval() throws {
+    func testCompletedTaskRemoval() async throws {
         let session = URLSession(configuration: .mock)
         MockURLProtocol.responseProvider = { url in
             (Data(), Mock.makeResponse(url: url))
@@ -30,10 +30,10 @@ final class ImageFetcherTests: XCTestCase {
         let fetcher = ImageFetcher(Self.cache, session: session)
 
         let exp = expectation(description: "Finished")
-        fetcher.load(Mock.baseURL) { _ in
-            exp.fulfill()
-        }
-        wait(for: [exp], timeout: 1.0)
+        _ = await fetcher.load(Mock.baseURL)
+        exp.fulfill()
+
+        await fulfillment(of: [exp], timeout: 1.0)
 
         let expected = 0
         let actual = fetcher.taskCount
