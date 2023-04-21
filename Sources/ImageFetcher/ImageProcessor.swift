@@ -59,12 +59,7 @@ public final class ImageProcessor: ImageProcessing {
                         return
                     }
 
-                    switch result {
-                    case .success(let image):
-                        continuation.resume(returning: image)
-                    case .failure(let error):
-                        continuation.resume(throwing: error)
-                    }
+                    continuation.resume(with: result)
                 }
 
                 queue.addOperation(operation)
@@ -90,12 +85,7 @@ public final class ImageProcessor: ImageProcessing {
                         return
                     }
 
-                    switch result {
-                    case .success(let image):
-                        continuation.resume(returning: image)
-                    case .failure(let error):
-                        continuation.resume(throwing: error)
-                    }
+                    continuation.resume(with: result)
                 }
 
                 queue.addOperation(operation)
