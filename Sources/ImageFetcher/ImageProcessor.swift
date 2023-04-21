@@ -66,6 +66,8 @@ public final class ImageProcessor: ImageProcessing {
                         continuation.resume(throwing: error)
                     }
                 }
+
+                queue.addOperation(operation)
             }
         } onCancel: {
             operation.cancel()
@@ -95,6 +97,8 @@ public final class ImageProcessor: ImageProcessing {
                         continuation.resume(throwing: error)
                     }
                 }
+
+                queue.addOperation(operation)
             }
         } onCancel: {
             operation.cancel()
