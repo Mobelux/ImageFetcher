@@ -135,8 +135,7 @@ final class ImageOperation: Operation {
 
     override func start() {
         guard !isCancelled else {
-            // TODO: handle better with cancellation error
-            return update(.failure(.noResult))
+            return update(.failure(.cancelled))
         }
 
         guard let image = Image(data: data) else {
