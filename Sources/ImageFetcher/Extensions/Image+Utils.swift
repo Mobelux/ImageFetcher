@@ -33,6 +33,13 @@ extension NSImage {
         var rect = CGRect.init(origin: .zero, size: size)
         return cgImage(forProposedRect: &rect, context: nil, hints: nil)
     }
+
+    func pngData() -> Data? {
+        guard let cgImage = cgImage else { return nil }
+
+        return NSBitmapImageRep(cgImage: cgImage)
+            .representation(using: .png, properties: [:])
+    }
 }
 #else
 import UIKit

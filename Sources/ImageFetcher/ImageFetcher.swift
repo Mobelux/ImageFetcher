@@ -25,20 +25,7 @@
 //  SOFTWARE.
 //
 
-#if os(macOS)
-import AppKit
-
-extension NSImage {
-    func pngData() -> Data? {
-        guard let cgImage = cgImage else { return nil }
-
-        return NSBitmapImageRep(cgImage: cgImage)
-            .representation(using: .png, properties: [:])
-    }
-}
-#else
-import UIKit
-#endif
+import Foundation
 import DiskCache
 
 /// An object that downloads and caches images.
