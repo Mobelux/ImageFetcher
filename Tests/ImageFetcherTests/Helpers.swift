@@ -51,14 +51,6 @@ enum Mock {
             .pngData()!
     }
 
-    static func makeResponse(url: URL, statusCode: Int = 200, headerFields: [String: String]? = nil) -> HTTPURLResponse {
-        HTTPURLResponse(
-            url: url,
-            statusCode: statusCode,
-            httpVersion: "HTTP/1.1",
-            headerFields: headerFields)!
-    }
-
     static func makeURL(_ iteration: Int, hitCache: (Int) -> Bool = { $0 % 7 == 0 }) -> URL {
         // Periodically hit the cache
         if hitCache(iteration) {
@@ -72,7 +64,7 @@ enum Mock {
 extension Networking {
     static func mock(
         responseDelay: TimeInterval? = nil,
-        responseProvider: @escaping (URL) throws -> (Data, HTTPURLResponse) = { (Data(), Mock.makeResponse(url: $0)) }
+        responseProvider: @escaping (URL) throws -> Data = { _ in Data() }
     ) -> Self {
         .init(
             load: { request in

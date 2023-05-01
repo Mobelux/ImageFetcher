@@ -30,26 +30,53 @@ import Foundation
 /// A simple wrapper for a closure performing an async network request.
 public struct Networking {
     /// Downloads the contents of a URL based on the specified URL request and delivers the data asynchronously.
-    public let load: (URLRequest) async throws -> (Data, URLResponse)
+    public let load: (URLRequest) async throws -> Data
 
     /// Creates a wrapper to perform async network requests.
     /// - Parameter load: A closure to load a request.
-    public init(load: @escaping (URLRequest) async throws -> (Data, URLResponse)) {
+    public init(load: @escaping (URLRequest) async throws -> Data) {
         // TODO: validate response and just return Data
         self.load = load
     }
 }
 
 public extension Networking {
+
+    enum ResponseValidator {
+        public static func validate(_ response: URLResponse) throws {
+            guard let httpResponse = response as? HTTPURLResponse else {
+                throw ImageError.cannotParse
+            }
+
+            switch httpResponse.statusCode {
+            case 200 ..< 300: return
+            default: throw ImageError.cannotParse
+            }
+        }
+    }
+
     /// Creates a network request wrapper with the specified session configuration.
-    /// - Parameter configuration: A configuration object that specifies certain behaviors, such as caching policies, timeouts, proxies, pipelining, TLS versions to support, cookie policies, credential storage, and so on.
-    init(_ configuration: URLSessionConfiguration = .cacheless) {
+    /// - Parameters:
+    ///   - configuration: A configuration object that specifies certain behaviors, such as caching policies, timeouts, proxies, pipelining, TLS versions to support, cookie policies, credential storage, and so on.
+    ///   - validateResponse: A closure that throws an error if the response passed to it was not successful.
+    init(
+        _ configuration: URLSessionConfiguration = .cacheless,
+        validateResponse: @escaping (URLResponse) throws -> Void = ResponseValidator.validate
+    ) {
         let session = URLSession(configuration: configuration)
         if #available(iOS 15.0, macOS 12.0, tvOS 15.0, watchOS 8.0, *) {
-            self.load = session.data(for:)
+            self.load = { request in
+                let (data, response) = try await session.data(for: request)
+                try validateResponse(response)
+                return data
+            }
 
         } else {
-            self.load = session.legacyData(for:)
+            self.load = { request in
+                let (data, response) = try await session.data(for: request)
+                try validateResponse(response)
+                return data
+            }
         }
     }
 }
