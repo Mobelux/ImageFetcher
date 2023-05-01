@@ -46,13 +46,10 @@ public extension Networking {
     init(_ configuration: URLSessionConfiguration = .cacheless) {
         let session = URLSession(configuration: configuration)
         if #available(iOS 15.0, macOS 12.0, tvOS 15.0, watchOS 8.0, *) {
-            self.load = { request in
-                try await session.data(for: request)
-            }
+            self.load = session.data(for:)
+
         } else {
-            self.load = { request in
-                try await session.legacyData(for: request)
-            }
+            self.load = session.legacyData(for:)
         }
     }
 }
