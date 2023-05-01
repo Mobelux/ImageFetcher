@@ -35,7 +35,6 @@ public struct Networking {
     /// Creates a wrapper to perform async network requests.
     /// - Parameter load: A closure to load a request.
     public init(load: @escaping (URLRequest) async throws -> Data) {
-        // TODO: validate response and just return Data
         self.load = load
     }
 }
