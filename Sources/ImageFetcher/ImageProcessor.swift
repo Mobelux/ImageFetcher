@@ -32,6 +32,10 @@ public final class ImageProcessor: ImageProcessing {
     private let queue: Queue
 
     /// Creates an image processor with the given queue and concurrent operation limit.
+    ///
+    /// If `maxConcurrent` is `nil`, the operation queue will instead use the recommended `OperationQueue.defaultMaxConcurrentOperationCount`
+    /// value, causing the system to set the maximum number of operations dynamically based on current system conditions.
+    ///
     /// - Parameters:
     ///   - queue: A queue that regulates the execution of operations.
     ///   - maxConcurrent: The maximum number of queued operations that can run at the same time.
