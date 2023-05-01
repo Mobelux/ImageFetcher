@@ -30,7 +30,7 @@ import AppKit
 
 extension NSImage {
     var cgImage: CGImage? {
-        var rect = CGRect.init(origin: .zero, size: size)
+        var rect = CGRect(origin: .zero, size: size)
         return cgImage(forProposedRect: &rect, context: nil, hints: nil)
     }
 
