@@ -60,7 +60,7 @@ public extension Networking {
     ///   - configuration: A configuration object that specifies certain behaviors, such as caching policies, timeouts, proxies, pipelining, TLS versions to support, cookie policies, credential storage, and so on.
     ///   - validateResponse: A closure that throws an error if the response passed to it was not successful.
     init(
-        _ configuration: URLSessionConfiguration = .cacheless,
+        _ configuration: URLSessionConfiguration = .default,
         validateResponse: @escaping (URLResponse) throws -> Void = ResponseValidator.validate
     ) {
         let session = URLSession(configuration: configuration)
