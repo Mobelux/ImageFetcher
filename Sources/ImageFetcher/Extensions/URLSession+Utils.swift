@@ -54,8 +54,6 @@ public extension URLSession {
     func legacyData(for request: URLRequest) async throws -> (Data, URLResponse) {
         let wrappedTask = WrappedTask()
         return try await withTaskCancellationHandler {
-            wrappedTask.task?.cancel()
-        } operation: {
             try await withUnsafeThrowingContinuation { continuation in
                 wrappedTask.task = dataTask(with: request) { data, response, error in
                     if let error = error {
@@ -68,6 +66,8 @@ public extension URLSession {
                 }
                 wrappedTask.task?.resume()
             }
+        } onCancel: {
+            wrappedTask.task?.cancel()
         }
     }
 }
