@@ -12,6 +12,7 @@ import AppKit
 import UIKit
 #endif
 
+/// A class of types that download and cache images from urls.
 public protocol ImageURLFetching {
     /// Builds a `Task` to load an image for the given url.
     /// - Parameter url: The url of the image to be downloaded.
@@ -46,6 +47,7 @@ public protocol ImageURLFetching {
     subscript (_ url: URL) -> Task<ImageSource, Error>? { get }
 }
 
+/// A class of types that download and cache images from image configurations.
 public protocol ImageConfigurationFetching {
     /// Builds a `Task` to download the given image configuration.
     /// - Parameter imageConfiguration: The configuation of the image to be downloaded.
@@ -80,4 +82,5 @@ public protocol ImageConfigurationFetching {
     subscript (_ imageConfiguration: ImageConfiguration) -> Task<ImageSource, Error>? { get }
 }
 
+/// A class of types that download and cache images.
 public protocol ImageFetching: ImageURLFetching & ImageConfigurationFetching {}

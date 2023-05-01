@@ -8,11 +8,16 @@
 
 import Foundation
 
-public protocol Queue {
+/// A queue that regulates the execution of operations.
+public protocol Queue: AnyObject {
+    /// The maximum number of queued operations that can run at the same time.
     var maxConcurrentOperationCount: Int { get set }
 
-    init()
+    /// Adds the specified operation to the receiver.
+    /// - Parameter operation: The operation to be added to the queue.
     func addOperation(_ operation: Operation)
+
+    /// Cancels all queued and executing operations.
     func cancelAllOperations()
 }
 

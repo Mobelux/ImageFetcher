@@ -27,10 +27,14 @@
 
 import Foundation
 
+/// A wrapper around an image indicating whether it was downloaded or cached.
 public enum ImageSource {
+    /// An image that was cached.
     case cached(Image)
+    /// An image that was downloaded.
     case downloaded(Image)
 
+    /// The underlying image.
     public var value: Image {
         switch self {
         case .cached(let value):

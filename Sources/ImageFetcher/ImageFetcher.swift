@@ -25,22 +25,10 @@
 //  SOFTWARE.
 //
 
-#if os(macOS)
-import AppKit
-
-extension NSImage {
-    func pngData() -> Data? {
-        guard let cgImage = cgImage else { return nil }
-
-        return NSBitmapImageRep(cgImage: cgImage)
-            .representation(using: .png, properties: [:])
-    }
-}
-#else
-import UIKit
-#endif
+import Foundation
 import DiskCache
 
+/// An object that downloads and caches images.
 public final class ImageFetcher: ImageFetching {
     internal let cache: Cache
     internal let imageProcessor: ImageProcessing
@@ -48,12 +36,18 @@ public final class ImageFetcher: ImageFetching {
     private let lock = NSLock()
     private var tasks: [String: Task<ImageSource, Error>] = [:]
 
+    /// The number of active tasks.
     public var taskCount: Int {
         lock.lock()
         defer { lock.unlock() }
         return tasks.count
     }
 
+    /// Creates an image fetcher with the given dependencies.
+    /// - Parameters:
+    ///   - cache: A type that caches data.
+    ///   - networking: A wrapper for performing a sync network requests.
+    ///   - imageProcessor: A type that processes images.
     public init(
         _ cache: Cache,
         networking: Networking = .init(),
@@ -134,7 +128,7 @@ public extension ImageFetcher {
         getTask(ImageConfiguration(url: url))
     }
 
-    /// Returns the `Task` associated with the given configuration, if one exists
+    /// Returns the `Task` associated with the given configuration, if one exists.
     /// - Parameter url: The configuration of the image to be downloaded.
     /// - Returns: The parent task of the image loading operation.
     subscript (_ imageConfiguration: ImageConfiguration) -> Task<ImageSource, Error>? {
