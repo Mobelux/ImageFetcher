@@ -51,7 +51,7 @@ enum Mock {
             .pngData()!
     }
 
-    static func makeURL(_ iteration: Int, hitCache: (Int) -> Bool = { $0 % 7 == 0 }) -> URL {
+    static func makeURL(_ iteration: Int = 1, hitCache: (Int) -> Bool = { $0 % 7 == 0 }) -> URL {
         // Periodically hit the cache
         if hitCache(iteration) {
             return baseURL
