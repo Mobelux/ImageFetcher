@@ -41,7 +41,10 @@ public struct Networking {
 
 public extension Networking {
 
+    /// A type that validates network responses.
     enum ResponseValidator {
+        /// Throws an error if the given response was not successful.
+        /// - Parameter response: The response to validate.
         public static func validate(_ response: URLResponse) throws {
             guard let httpResponse = response as? HTTPURLResponse else {
                 throw ImageError.cannotParse
