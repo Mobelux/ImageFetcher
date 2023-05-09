@@ -27,13 +27,20 @@
 
 import Foundation
 
+/// An error that occurs while fetching an image.
 public enum ImageError: LocalizedError {
+    /// An indication that an image fetching task was cancelled.
     case cancelled
+    /// An indication that the image data could not be parsed.
     case cannotParse
+    /// An indication that an operation lacked a result.
     case noResult
+    /// An indication that an unknown error occurred.
     case unknown
+    /// An indication that an error with a custom message occurred.
     case custom(String)
 
+    /// A localized message describing what error occurred.
     public var errorDescription: String {
         switch self {
         case .cancelled: return NSLocalizedString("ImageLoader.cancelled", comment: "")
