@@ -40,6 +40,14 @@ public enum ImageError: LocalizedError {
     /// An indication that an error with a custom message occurred.
     case custom(String)
 
+    /// A Boolean value indicating whether an error was the result of a cancelled task.
+    public var wasCancelled: Bool {
+        switch self {
+        case .cancelled: return true
+        default: return false
+        }
+    }
+
     /// A localized message describing what error occurred.
     public var errorDescription: String {
         switch self {
