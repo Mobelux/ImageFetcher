@@ -4,7 +4,7 @@ import XCTest
 final class ImageFetcherTests: XCTestCase {
     func testCompletedTaskRemoval() async throws {
         let cache = MockCache(onData: { _ in throw MockCache.CacheError(reason: "File missing") })
-        let networking = Networking.mock(responseDelay: 0.1) { (Mock.makeImageData(side: 150), Mock.makeResponse(url: $0)) }
+        let networking = Networking.mock(responseDelay: 0.1) { _ in Mock.makeImageData(side: 150) }
         let sut = ImageFetcher(cache, networking: networking, imageProcessor: MockImageProcessor())
 
         let exp = expectation(description: "Finished")
@@ -20,7 +20,7 @@ final class ImageFetcherTests: XCTestCase {
 
     func testContinuationsAreNotLeaked() async throws {
         let cache = MockCache(onData: { _ in throw MockCache.CacheError(reason: "File missing") })
-        let networking = Networking.mock(responseDelay: 1.0) { (Mock.makeImageData(side: 150), Mock.makeResponse(url: $0)) }
+        let networking = Networking.mock(responseDelay: 1.0) { _ in Mock.makeImageData(side: 150) }
         let sut = ImageFetcher(cache, networking: networking, imageProcessor: MockImageProcessor())
 
         let url = URL(string: "https://example.com")!
@@ -45,7 +45,7 @@ final class ImageFetcherTests: XCTestCase {
         let requestCount: Int = 100
 
         let cache = MockCache(onData: { _ in throw MockCache.CacheError(reason: "File missing") })
-        let networking = Networking.mock(responseDelay: 0.1) { (Mock.makeImageData(side: 100), Mock.makeResponse(url: $0)) }
+        let networking = Networking.mock(responseDelay: 0.1) { _ in Mock.makeImageData(side: 100) }
         let sut = ImageFetcher(cache, networking: networking, imageProcessor: MockImageProcessor())
 
         async let images = await withThrowingTaskGroup(of: Image.self, returning: [Image].self) { taskGroup in

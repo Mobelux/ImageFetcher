@@ -203,7 +203,7 @@ public extension ImageFetcher {
 private extension ImageFetcher {
     func download(_ imageConfiguration: ImageConfiguration) async throws -> ImageSource {
         do {
-            let (data, _) = try await networking.load(URLRequest(url: imageConfiguration.url))
+            let data = try await networking.load(URLRequest(url: imageConfiguration.url))
             let image = try await imageProcessor.process(data, configuration: imageConfiguration)
             removeTask(imageConfiguration)
 
