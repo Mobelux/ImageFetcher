@@ -81,6 +81,63 @@ final class ImageFetcherTests: XCTestCase {
     }
 }
 
+// MARK: - Task Functionality
+extension ImageFetcherTests {
+    func testGetExistingTask() async throws {
+        var readCount = 0
+        let cache = MockCache(onData: { _ in
+            readCount += 1
+            throw MockCache.CacheError(reason: "File missing")
+        })
+
+        var requestCount = 0
+        let networking = Networking.mock(responseDelay: 1.0) { _ in
+            requestCount += 1
+            return Mock.makeImageData(side: 100)
+
+        }
+        let sut = ImageFetcher(cache, networking: networking, imageProcessor: MockImageProcessor())
+
+        let imageURL = Mock.makeURL()
+
+        async let task1 = await sut.task(imageURL)
+        try await Task.sleep(nanoseconds: 500_000_000)
+        async let task2 = await sut.task(imageURL)
+
+        let (imageSource1, imageSource2) = try await (task1.value, task2.value)
+        XCTAssertEqual(imageSource1.value.pngData()!, imageSource2.value.pngData()!)
+        XCTAssertEqual(readCount, 1)
+        XCTAssertEqual(requestCount, 1)
+        XCTAssertEqual(sut.taskCount, 0)
+    }
+
+    func testGetDecompressTask() async throws {
+        let imageData = Mock.makeImageData(side: 300)
+
+        let readExpectation = expectation(description: "Cached image read")
+        let cache = MockCache(onData: { _ in
+            defer { readExpectation.fulfill() }
+            return imageData
+        })
+
+        let requestExpectation = expectation(description: "Image fetched")
+        requestExpectation.isInverted = true
+        let networking = Networking.mock { _ in
+            requestExpectation.fulfill()
+            return Mock.makeImageData(side: 100)
+        }
+
+        let sut = ImageFetcher(cache, networking: networking, imageProcessor: MockImageProcessor())
+
+        let imageURL = Mock.makeURL()
+        async let task1 = await sut.task(imageURL)
+
+        await fulfillment(of: [readExpectation, requestExpectation], timeout: 0.5)
+        let image = try await task1.value
+        XCTAssertEqual(image.value.pngData()!, imageData)
+    }
+}
+
 // MARK: - Cache Functionality
 extension ImageFetcherTests {
     func testDeleteCache() async throws {
