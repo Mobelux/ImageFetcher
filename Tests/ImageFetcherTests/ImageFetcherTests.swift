@@ -41,7 +41,7 @@ final class ImageFetcherTests: XCTestCase {
         await fulfillment(of: [exp], timeout: 1.0)
     }
 
-    func testSubscriptAccess() async throws {
+    func testSubscriptAccessThreadSafety() async throws {
         let requestCount: Int = 100
 
         let cache = MockCache(onData: { _ in throw MockCache.CacheError(reason: "File missing") })
