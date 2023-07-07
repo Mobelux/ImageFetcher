@@ -30,7 +30,7 @@ import CoreGraphics
 
 extension TaskPriority: Hashable {}
 
-/// The set of parameters the ``ImageLoader`` uses to download an image.
+/// The set of parameters the ``ImageFetcher`` uses to download an image.
 public struct ImageConfiguration: Hashable, Sendable {
     /// The url of the image to download.
     public let url: URL
