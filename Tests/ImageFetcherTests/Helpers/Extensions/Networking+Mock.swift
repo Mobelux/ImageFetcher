@@ -27,11 +27,12 @@
 
 import Foundation
 import ImageFetcher
+import XCTest
 
 extension Networking {
     static func mock(
         responseDelay: TimeInterval? = nil,
-        responseProvider: @escaping (URL) throws -> Data = { _ in Data() }
+        responseProvider: @escaping (URL) throws -> Data = { _ in XCTFail("Networking.load"); return Data() }
     ) -> Self {
         .init(
             load: { request in
