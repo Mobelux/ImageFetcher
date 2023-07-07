@@ -25,211 +25,146 @@
 //  SOFTWARE.
 //
 
-#if os(macOS)
-import AppKit
-
-extension NSImage {
-    func pngData() -> Data? {
-        guard let cgImage = cgImage else { return nil }
-
-        return NSBitmapImageRep(cgImage: cgImage)
-            .representation(using: .png, properties: [:])
-    }
-}
-#else
-import UIKit
-#endif
-import DataOperation
+import Foundation
 import DiskCache
 
+/// An object that downloads and caches images.
 public final class ImageFetcher: ImageFetching {
+    internal let cache: Cache
+    internal let imageProcessor: ImageProcessing
+    internal let networking: Networking
     private let lock = NSLock()
-    internal var cache: Cache
-    private let session: Session
-    private var queue: Queue
-    private var tasks: Set<ImageFetcherTask> = []
-    private var workerQueue = DispatchQueue(label: "com.mobelux.image-fetcher")
+    private var tasks: [String: Task<ImageSource, Error>] = [:]
 
-    public init(_ cache: Cache,
-                session: Session = URLSession(configuration: .default),
-                queue: Queue = OperationQueue(),
-                maxConcurrent: Int = 2) {
+    /// The number of active tasks.
+    public var taskCount: Int {
+        lock.lock()
+        defer { lock.unlock() }
+        return tasks.count
+    }
+
+    /// Creates an image fetcher with the given dependencies.
+    /// - Parameters:
+    ///   - cache: A type that caches data.
+    ///   - networking: A wrapper for performing a sync network requests.
+    ///   - imageProcessor: A type that processes images.
+    public init(
+        _ cache: Cache,
+        networking: Networking = .init(),
+        imageProcessor: ImageProcessing
+    ) {
         self.cache = cache
-        self.session = session
-        self.queue = queue
-
-        self.queue.maxConcurrentOperationCount = maxConcurrent
+        self.networking = networking
+        self.imageProcessor = imageProcessor
     }
 }
 
 // MARK: - Public API Methods
 public extension ImageFetcher {
-    /// Builds a `ImageLoaderTask`. If the result of the image configuration is cached, `handler` will be called immediately. Otherwise a download operation will be kicked off
-    /// - Parameters:
-    ///   - url: The url of the image to be downloaded.
-    ///   - handler: The handler which passes in an `ImageLoaderTask`. Always call on the main thread.
-    func task(_ url: URL, handler: @escaping (ImageFetcherTask) -> ()) {
-        task(ImageConfiguration(url: url), handler: handler)
-    }
-
-    /// Builds a `ImageLoaderTask`. If the result of the image configuration is cached, `handler` will be called immediately. Otherwise a download operation will be kicked off
-    /// - Parameters:
-    ///   - imageConfiguration: The configuation of the image to be downloaded.
-    ///   - handler: The handler which passes in an `ImageLoaderTask`. Always call on the main thread.
-    func task(_ imageConfiguration: ImageConfiguration, handler: @escaping (ImageFetcherTask) -> ()) {
-        Task {
-            let imageTask = await task(imageConfiguration)
-            await MainActor.run {
-                handler(imageTask)
-            }
-        }
-    }
-
-    /// Builds a `ImageLoaderTask`. If the result of the image configuration is cached, the task will be returned immediately. Otherwise a download operation will be kicked off.
+    /// Builds a `Task` to load an image for the given url.
     /// - Parameter url: The url of the image to be downloaded.
-    /// - Returns: An instance of `ImageLoaderTask`. Be sure to check `result` before adding a handler.
-    func task(_ url: URL) async -> ImageFetcherTask {
+    /// - Returns: The parent task of the image loading operation.
+    func task(_ url: URL) async -> Task<ImageSource, Error>  {
         await task(ImageConfiguration(url: url))
     }
 
-    /// Builds a `ImageLoaderTask`. If the result of the image configuration is cached, the task will be returned immediately. Otherwise a download operation will be kicked off.
+    /// Builds a `Task` to download the given image configuration.
     /// - Parameter imageConfiguration: The configuation of the image to be downloaded.
-    /// - Returns: An instance of `ImageLoaderTask`. Be sure to check `result` before adding a handler.
-    func task(_ imageConfiguration: ImageConfiguration) async -> ImageFetcherTask {
-        await withUnsafeContinuation { continuation in
-            workerQueue.sync {
-                // if data is cached, use it, else use `DataOperation` to fetch image data
-                if let cachedData = try? cache.syncData(imageConfiguration.key),
-                   let image = Image(data: cachedData)?.decompressed() {
-                    continuation.resume(
-                        returning: ImageFetcherTask(
-                            configuration: imageConfiguration,
-                            result: .success(.cached(image))))
-                } else {
-                    let operation = DataOperation(request: URLRequest(url: imageConfiguration.url), session: session)
-                    operation.name = imageConfiguration.key
-
-                    let task = ImageFetcherTask(configuration: imageConfiguration, operation: operation)
-                    operation.completionBlock = completion(task: task)
-                    queue.addOperation(operation)
-
-                    continuation.resume(returning: task)
-                }
+    /// - Returns: The parent task of the image loading operation.
+    func task(_ imageConfiguration: ImageConfiguration) async -> Task<ImageSource, Error> {
+        if let existingTask = getTask(imageConfiguration) {
+            return existingTask
+        } else if let cachedData = try? await cache.data(imageConfiguration.key) {
+            let decompressTask = Task(priority: imageConfiguration.priority) {
+                try await decompress(cachedData, imageConfiguration: imageConfiguration)
             }
+
+            insertTask(decompressTask, key: imageConfiguration)
+            return decompressTask
+        } else {
+            let downloadTask = Task(priority: imageConfiguration.priority) {
+                try await download(imageConfiguration)
+            }
+
+            insertTask(downloadTask, key: imageConfiguration)
+            return downloadTask
         }
     }
 
-    /// Loads the `ImageConfiguration`. If the result of the image configuration is cached, `handler` will be called immediately. Otherwise a download operation will be kicked off.
-    /// - Parameters:
-    ///   - url: The url of the image to be downloaded.
-    ///   - handler: The handler which passes in an `ImageHandler`. Always called on the main thread.
-    func load(_ url: URL, handler: ImageHandler?) {
-        load(ImageConfiguration(url: url), handler: handler)
-    }
-
-    /// Loads the `ImageConfiguration`. If the result of the image configuration is cached, `handler` will be called immediately. Otherwise a download operation will be kicked off.
-    /// - Parameters:
-    ///   - imageConfiguration: The configuation of the image to be downloaded.
-    ///   - handler: The handler which passes in an `ImageHandler`. Always called on the main thread.
-    func load(_ imageConfiguration: ImageConfiguration, handler: ImageHandler?) {
-        Task {
-            let imageResult = await load(imageConfiguration)
-            await MainActor.run {
-                handler?(imageResult)
-            }
-        }
-    }
-
-    /// Loads the `ImageConfiguration`. If the result of the image configuration is cached, the result will be returned immediately. Otherwise a download operation will be kicked off.
+    /// Loads the `URL`. If the result of the image configuration is cached, the result will be returned immediately. Otherwise a download operation will be kicked off.
     /// - Parameter url: The url of the image to be downloaded.
-    /// - Returns: The result of the image load.
-    func load(_ url: URL) async -> ImageResult {
-        await load(ImageConfiguration(url: url))
+    /// - Returns: The loaded image.
+    func load(_ url: URL) async throws -> ImageSource {
+        try await load(ImageConfiguration(url: url))
     }
 
     /// Loads the `ImageConfiguration`. If the result of the image configuration is cached, the result will be returned immediately. Otherwise a download operation will be kicked off.
     /// - Parameter imageConfiguration: The configuation of the image to be downloaded.
-    /// - Returns: The result of the image load.
-    func load(_ imageConfiguration: ImageConfiguration) async -> ImageResult {
-        let imageTask = await task(imageConfiguration)
-
-        return await withUnsafeContinuation { (continuation: UnsafeContinuation<ImageResult, Never>) -> Void in
-            workerQueue.sync {
-                if let result = imageTask.result {
-                    continuation.resume(returning: result)
-                } else {
-                    imageTask.handler = { result in
-                        continuation.resume(returning: result)
-                    }
-
-                    insertTask(imageTask)
-                }
-            }
-        }
+    /// - Returns: The loaded image.
+    func load(_ imageConfiguration: ImageConfiguration) async throws -> ImageSource {
+        try await task(imageConfiguration).value
     }
 
-    /// Cancels an in-flight image load
+    /// Cancels an in-flight image load.
     /// - Parameter url: The url of the image to be downloaded.
     func cancel(_ url: URL) {
         cancel(ImageConfiguration(url: url))
     }
 
-    /// Cancels an in-flight image load
+    /// Cancels an in-flight image load.
     /// - Parameter imageConfiguration: The configuation of the image to be downloaded.
     func cancel(_ imageConfiguration: ImageConfiguration) {
         guard let task = removeTask(imageConfiguration) else {
             return
         }
 
-        task.result = .failure(.noResult)
-        task.handler = nil
         task.cancel()
     }
 
-    /// Returns the `ImageLoaderTask` associated with the given url, if one exists
+    /// Returns the `Task` associated with the given url, if one exists.
     /// - Parameter url: The url of the image to be downloaded.
-    /// - Returns: An instance of `ImageLoaderTask`. Be sure to check `result` before adding a handler.
-    subscript (_ url: URL) -> ImageFetcherTask? {
+    /// - Returns: The parent task of the image loading operation.
+    subscript (_ url: URL) -> Task<ImageSource, Error>? {
         getTask(ImageConfiguration(url: url))
     }
 
-    /// Returns the `ImageLoaderTask` associated with the given configuration, if one exists
+    /// Returns the `Task` associated with the given configuration, if one exists.
     /// - Parameter url: The configuration of the image to be downloaded.
-    /// - Returns: An instance of `ImageLoaderTask`. Be sure to check `result` before adding a handler.
-    subscript (_ imageConfiguration: ImageConfiguration) -> ImageFetcherTask? {
+    /// - Returns: The parent task of the image loading operation.
+    subscript (_ imageConfiguration: ImageConfiguration) -> Task<ImageSource, Error>? {
         getTask(imageConfiguration)
     }
 
-    /// Deletes all images in the cache
-    func deleteCache() throws {
-        try cache.syncDeleteAll()
+    /// Deletes all images in the cache.
+    func deleteCache() async throws {
+        try await cache.deleteAll()
     }
 
-    /// Deletes image from the cache
+    /// Deletes image from the cache.
     /// - Parameter url: The url of the image to be deleted.
-    func delete(_ url: URL) throws {
-        try delete(ImageConfiguration(url: url))
+    func delete(_ url: URL) async throws {
+        try await delete(ImageConfiguration(url: url))
     }
 
-    /// Deletes image from the cache
+    /// Deletes image from the cache.
     /// - Parameter imageConfiguration: The configuation of the image to be deleted.
-    func delete(_ imageConfiguration: ImageConfiguration) throws {
-        try cache.syncDelete(imageConfiguration.key)
+    func delete(_ imageConfiguration: ImageConfiguration) async throws {
+        try await cache.delete(imageConfiguration.key)
     }
 
-    /// Saves in image to the cache
+    /// Saves an image to the cache.
     /// - Parameters:
-    ///   - image: The image instance
+    ///   - image: The image instance.
     ///   - key: The url of the image to be saved.
-    func cache(_ image: Image, key: URL) throws {
-        try cache(image, key: ImageConfiguration(url: key))
+    func cache(_ image: Image, key: URL) async throws {
+        try await cache(image, key: ImageConfiguration(url: key))
     }
 
-    /// Saves in image to the cache
+    /// Saves an image to the cache.
     /// - Parameters:
-    ///   - image: The image instance
+    ///   - image: The image instance.
     ///   - key: The configuation of the image to be saved.
-    func cache(_ image: Image, key: ImageConfiguration) throws {
+    func cache(_ image: Image, key: ImageConfiguration) async throws {
         guard let data = image.pngData() else {
             throw NSError(
                 domain: "ImageFetcher.mobelux.com",
@@ -237,107 +172,86 @@ public extension ImageFetcher {
                 userInfo: [NSLocalizedDescriptionKey: "Could not convert image to PNG"])
         }
 
-        try cache.syncCache(data, key: key.key)
+        try await cache.cache(data, key: key.key)
     }
 
     /// Loads an image from the cache.
     /// - Parameter key: The url of the image to load.
     /// - Returns:An image instance that has been previously cached. Nil if not found.
-    func load(image key: URL) -> Image? {
-        load(image: ImageConfiguration(url: key))
+    func load(image key: URL) async -> Image? {
+        await load(image: ImageConfiguration(url: key))
     }
 
     /// Loads an image from the cache.
     /// - Parameter key: The configuation of the image to load.
     /// - Returns:An image instance that has been previously cached. Nil if not found.
-    func load(image key: ImageConfiguration) -> Image? {
-        do {
-            guard let cachedData = try? cache.syncData(key.key),
-                  let image = Image(data: cachedData)?.decompressed() else {
-                      return nil
-                  }
-
-            return image
+    func load(image key: ImageConfiguration) async -> Image? {
+        guard let cachedData = try? await cache.data(key.key) else {
+            return nil
         }
+
+        let decompressTask = Task(priority: key.priority) {
+            try await decompress(cachedData, imageConfiguration: key)
+        }
+
+        insertTask(decompressTask, key: key)
+        return try? await decompressTask.value.value
     }
 }
 
 // MARK: - Private Methods
 private extension ImageFetcher {
-    func insertTask(_ imageFetcherTask: ImageFetcherTask) {
-        lock.lock()
-        defer { lock.unlock() }
+    func download(_ imageConfiguration: ImageConfiguration) async throws -> ImageSource {
+        do {
+            let data = try await networking.load(URLRequest(url: imageConfiguration.url))
+            let image = try await imageProcessor.process(data, configuration: imageConfiguration)
+            removeTask(imageConfiguration)
 
-        tasks.insert(imageFetcherTask)
+            Task.detached(priority: .medium) { [weak self] in
+                try? await self?.cache(image, key: imageConfiguration)
+            }
+
+            return .downloaded(image)
+        } catch {
+            removeTask(imageConfiguration)
+            throw error
+        }
     }
 
-    func getTask(_ key: ImageConfiguration) -> ImageFetcherTask? {
+    func decompress(_ imageData: Data, imageConfiguration: ImageConfiguration) async throws -> ImageSource {
+        do {
+            let image = try await imageProcessor.decompress(imageData)
+            removeTask(imageConfiguration)
+            return .cached(image)
+        } catch let error as CancellationError {
+            removeTask(imageConfiguration)
+            throw error
+        } catch {
+            return try await download(imageConfiguration)
+        }
+    }
+
+    // MARK: Task Access
+
+    func insertTask(_ imageFetcherTask: Task<ImageSource, Error>, key: ImageConfiguration) {
         lock.lock()
         defer { lock.unlock() }
 
-        return tasks.first(where: { $0.configuration == key })
+        tasks[key.key] = imageFetcherTask
+    }
+
+    func getTask(_ key: ImageConfiguration) -> Task<ImageSource, Error>? {
+        lock.lock()
+        defer { lock.unlock() }
+
+        return tasks[key.key]
     }
 
     @discardableResult
-    func removeTask(_ key: ImageConfiguration) -> ImageFetcherTask? {
+    func removeTask(_ key: ImageConfiguration) -> Task<ImageSource, Error>? {
         lock.lock()
         defer { lock.unlock() }
 
-        guard let task = tasks.first(where: { $0.configuration == key }) else {
-            return nil
-        }
-        return tasks.remove(task)
-    }
-
-    func completion(task: ImageFetcherTask) -> (() -> ()) {
-        guard let operation = task.operation else {
-            return {}
-        }
-
-        return { [weak operation, weak self] in
-            guard let soperation = operation, let sself = self else {
-                return
-            }
-
-            // grab the operation's result
-            guard let result = soperation.result else {
-                task.result = .failure(.noResult)
-                return
-            }
-
-            // convert data result to image result
-            let imageResult: ImageResult = {
-                switch result {
-                // data was successfully downloaded
-                case .success(let data):
-                    guard let image = Image(data: data), let editedImage = image.edit(configuration: task.configuration) else {
-                        return .failure(.cannotParse)
-                    }
-
-                    do {
-                        try sself.cache(editedImage, key: task.configuration)
-                    } catch {
-                        return .failure(ImageError.custom(error.localizedDescription))
-                    }
-
-                    return .success(.downloaded(editedImage))
-                case .failure(let error):
-                    return .failure(ImageError.convertFrom(error))
-                }
-            }()
-
-            // call the handle with an image result
-            task.result = imageResult
-
-            // remove fetcher task from tasks
-            sself.removeTask(task.configuration)
-        }
-    }
-}
-
-// MARK: - Internal Test Members
-internal extension ImageFetcher {
-    var taskCount: Int {
-        tasks.count
+        return tasks.removeValue(forKey: key.key)
     }
 }

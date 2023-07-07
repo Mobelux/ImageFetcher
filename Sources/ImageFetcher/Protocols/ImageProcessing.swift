@@ -1,10 +1,10 @@
 //
-//  ImageFetcher+Deprecated.swift
+//  ImageProcessing.swift
 //  Mobelux
-//  
+//
 //  MIT License
 //
-//  Copyright (c) 2020 Mobelux LLC
+//  Copyright (c) 2023 Mobelux LLC
 //
 //  Permission is hereby granted, free of charge, to any person obtaining a copy
 //  of this software and associated documentation files (the "Software"), to deal
@@ -27,9 +27,20 @@
 
 import Foundation
 
-public extension ImageFetcher {
-    @available(*, deprecated, renamed: "cancel(_:)")
-    func clear(_ imageConfiguration: ImageConfiguration) {
-        cancel(imageConfiguration)
-    }
+/// A class of types responsible for decompressing and processing image data.
+public protocol ImageProcessing {
+    /// Decompressed an image from the given data.
+    /// - Parameter data: The image data.
+    /// - Returns: The decompressed image.
+    func decompress(_ data: Data) async throws -> Image
+
+    /// Processes an image from the given data and configuration.
+    /// - Parameters:
+    ///   - data: The image data.
+    ///   - configuration: The configuation of the image to by processed.
+    /// - Returns: The processed image.
+    func process(_ data: Data, configuration: ImageConfiguration) async throws -> Image
+
+    /// Cancels all queued and executing operations.
+    func cancelAll() 
 }

@@ -1,10 +1,10 @@
 //
-//  ResultType.swift
+//  Mock.swift
 //  Mobelux
 //
 //  MIT License
 //
-//  Copyright (c) 2020 Mobelux LLC
+//  Copyright (c) 2023 Mobelux LLC
 //
 //  Permission is hereby granted, free of charge, to any person obtaining a copy
 //  of this software and associated documentation files (the "Software"), to deal
@@ -13,30 +13,37 @@
 //  copies of the Software, and to permit persons to whom the Software is
 //  furnished to do so, subject to the following conditions:
 //
-//  The above copyright notice and this permission notice shall be included in all
-//  copies or substantial portions of the Software.
+//  The above copyright notice and this permission notice shall be included in
+//  all copies or substantial portions of the Software.
 //
 //  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 //  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 //  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
 //  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 //  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-//  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-//  SOFTWARE.
+//  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+//  THE SOFTWARE.
 //
 
+@testable import ImageFetcher
 import Foundation
 
-public enum ResultType<T> {
-    case cached(T)
-    case downloaded(T)
+enum Mock {
+    static var baseURL = URL(string: "https://example.com")!
 
-    public var value: T {
-        switch self {
-        case .cached(let value):
-            return value
-        case .downloaded(let value):
-            return value
+    static func makeImageData(side: CGFloat) -> Data {
+        Color
+            .random()
+            .image(CGSize(width: side, height: side))
+            .pngData()!
+    }
+
+    static func makeURL(_ iteration: Int = 1, hitCache: (Int) -> Bool = { $0 % 7 == 0 }) -> URL {
+        // Periodically hit the cache
+        if hitCache(iteration) {
+            return baseURL
         }
+
+        return baseURL.appendingPathComponent("\(iteration)")
     }
 }
