@@ -27,24 +27,25 @@
 
 import Foundation
 import ImageFetcher
+import XCTest
 
 class MockCache: Cache {
     struct CacheError: Error {
         let reason: String
     }
 
-    var onCache: (Data, String) throws -> ()
-    var onData: (String) throws -> Data
-    var onDelete: (String) throws -> ()
-    var onDeleteAll: () throws -> ()
-    var onFileURL: (String) -> URL
+    var onCache: ((Data, String) throws -> ())?
+    var onData: ((String) throws -> Data)?
+    var onDelete: ((String) throws -> ())?
+    var onDeleteAll: (() throws -> ())?
+    var onFileURL: ((String) -> URL)?
 
     init(
-        onCache: @escaping (Data, String) throws -> () = { _, _ in },
-        onData: @escaping (String) throws -> Data = { _ in Data() },
-        onDelete: @escaping (String) throws -> () = { _ in },
-        onDeleteAll: @escaping () throws -> () = { },
-        onFileURL: @escaping (String) -> URL = { _ in URL(fileURLWithPath: "") }
+        onCache: ((Data, String) throws -> ())? = nil,
+        onData: ((String) throws -> Data)? = nil,
+        onDelete: ((String) throws -> ())? = nil,
+        onDeleteAll: (() throws -> ())? = nil,
+        onFileURL: ((String) -> URL)? = nil
     ) {
         self.onCache = onCache
         self.onData = onData
@@ -54,40 +55,76 @@ class MockCache: Cache {
     }
 
     func syncCache(_ data: Data, key: String) throws {
-        try onCache(data, key)
+        if let onCache {
+            try onCache(data, key)
+        } else {
+            XCTFail("MockCache.\(#function)")
+        }
     }
 
     func syncData(_ key: String) throws -> Data {
-        try onData(key)
+        if let onData {
+            return try onData(key)
+        } else {
+            XCTFail("MockCache.\(#function)"); return Data()
+        }
     }
 
     func syncDelete(_ key: String) throws {
-        try onDelete(key)
+        if let onDelete {
+            try onDelete(key)
+        } else {
+            XCTFail("MockCache.\(#function)")
+        }
     }
 
     func syncDeleteAll() throws {
-        try onDeleteAll()
+        if let onDeleteAll {
+            try onDeleteAll()
+        } else {
+            XCTFail("MockCache.\(#function)")
+        }
     }
 
     func fileURL(_ key: String) -> URL {
-        onFileURL(key)
+        if let onFileURL {
+            return onFileURL(key)
+        } else {
+            XCTFail("MockCache.\(#function)"); return URL(fileURLWithPath: "")
+        }
     }
 
     // Async support
 
     func cache(_ data: Data, key: String) async throws {
-        try onCache(data, key)
+        if let onCache {
+            try onCache(data, key)
+        } else {
+            XCTFail("MockCache.\(#function)")
+        }
     }
 
     func data(_ key: String) async throws -> Data {
-        try onData(key)
+        if let onData {
+            return try onData(key)
+        } else {
+            XCTFail("MockCache.\(#function)"); return Data()
+        }
     }
 
     func delete(_ key: String) async throws {
-        try onDelete(key)
+        if let onDelete {
+            try onDelete(key)
+        } else {
+            XCTFail("MockCache.\(#function)")
+        }
     }
 
     func deleteAll() async throws {
-        try onDeleteAll()
+        if let onDeleteAll {
+            try onDeleteAll()
+        } else {
+            XCTFail("MockCache.\(#function)")
+        }
     }
 }

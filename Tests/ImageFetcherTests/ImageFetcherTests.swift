@@ -3,7 +3,9 @@ import XCTest
 
 final class ImageFetcherTests: XCTestCase {
     func testCompletedTaskRemoval() async throws {
-        let cache = MockCache(onData: { _ in throw MockCache.CacheError(reason: "File missing") })
+        let cache = MockCache(
+            onCache: { _, _ in },
+            onData: { _ in throw MockCache.CacheError(reason: "File missing") })
         let networking = Networking.mock(responseDelay: 0.1) { _ in Mock.makeImageData(side: 150) }
         let sut = ImageFetcher(cache, networking: networking, imageProcessor: MockImageProcessor())
 
@@ -19,7 +21,9 @@ final class ImageFetcherTests: XCTestCase {
     }
 
     func testContinuationsAreNotLeaked() async throws {
-        let cache = MockCache(onData: { _ in throw MockCache.CacheError(reason: "File missing") })
+        let cache = MockCache(
+            onCache: { _, _ in },
+            onData: { _ in throw MockCache.CacheError(reason: "File missing") })
         let networking = Networking.mock(responseDelay: 1.0) { _ in Mock.makeImageData(side: 150) }
         let sut = ImageFetcher(cache, networking: networking, imageProcessor: MockImageProcessor())
 
@@ -44,7 +48,9 @@ final class ImageFetcherTests: XCTestCase {
     func testSubscriptAccessThreadSafety() async throws {
         let requestCount: Int = 100
 
-        let cache = MockCache(onData: { _ in throw MockCache.CacheError(reason: "File missing") })
+        let cache = MockCache(
+            onCache: { _, _ in },
+            onData: { _ in throw MockCache.CacheError(reason: "File missing") })
         let networking = Networking.mock(responseDelay: 0.1) { _ in Mock.makeImageData(side: 100) }
         let sut = ImageFetcher(cache, networking: networking, imageProcessor: MockImageProcessor())
 
@@ -85,10 +91,12 @@ final class ImageFetcherTests: XCTestCase {
 extension ImageFetcherTests {
     func testGetExistingTask() async throws {
         var readCount = 0
-        let cache = MockCache(onData: { _ in
-            readCount += 1
-            throw MockCache.CacheError(reason: "File missing")
-        })
+        let cache = MockCache(
+            onCache: { _, _ in },
+            onData: { _ in
+                readCount += 1
+                throw MockCache.CacheError(reason: "File missing")
+            })
 
         var requestCount = 0
         let networking = Networking.mock(responseDelay: 1.0) { _ in
@@ -115,10 +123,12 @@ extension ImageFetcherTests {
         let imageData = Mock.makeImageData(side: 300)
 
         let readExpectation = expectation(description: "Cached image read")
-        let cache = MockCache(onData: { _ in
-            defer { readExpectation.fulfill() }
-            return imageData
-        })
+        let cache = MockCache(
+            onCache: { _, _ in },
+            onData: { _ in
+                defer { readExpectation.fulfill() }
+                return imageData
+            })
 
         let requestExpectation = expectation(description: "Image fetched")
         requestExpectation.isInverted = true
