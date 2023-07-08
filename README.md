@@ -29,10 +29,9 @@ Optionally initialize with a session configuration and maximum concurrent image 
 ```swift
 let sessionConfiguration = URLSessionConfiguration.default
 sessionConfiguration.timeoutIntervalForResource = 20
-let fetcher = ImageFetcher(
-    try DiskCache(storageType: .temporary(nil)),
-    sessionConfiguration: sessionConfiguration,
-    maxConcurrent: 5)
+let fetcher = ImageFetcher(try DiskCache(storageType: .temporary(nil)),
+                           sessionConfiguration: sessionConfiguration,
+                           maxConcurrent: 5)
 ```
 
 To fetch an image from the web:
