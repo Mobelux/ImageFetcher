@@ -57,6 +57,24 @@ public final class ImageFetcher: ImageFetching {
         self.networking = networking
         self.imageProcessor = imageProcessor
     }
+
+    /// Creates an image fetcher.
+    /// - Parameters:
+    ///   - cache:  A type that caches data.
+    ///   - sessionConfiguration: A configuration object that specifies behaviors for the `URLSession`
+    ///   instance used to fetch images.
+    ///   - maxConcurrent: The maximum number of image processing operations that can run at the same
+    ///   time.
+    public convenience init(
+        _ cache: Cache,
+        sessionConfiguration: URLSessionConfiguration = .default,
+        maxConcurrent: Int = 2
+    ) {
+        self.init(
+            cache,
+            networking: Networking(sessionConfiguration),
+            imageProcessor: ImageProcessor(maxConcurrent: maxConcurrent))
+    }
 }
 
 // MARK: - Public API Methods
