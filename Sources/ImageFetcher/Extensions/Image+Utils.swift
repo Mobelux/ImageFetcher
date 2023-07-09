@@ -46,6 +46,11 @@ import UIKit
 #endif
 
 public extension Image {
+    /// Returns the optimal size for the image fitting the given sizes.
+    /// - Parameters:
+    ///   - maxSize: The maximum image size.
+    ///   - size: The target image size.
+    /// - Returns: The optimal size for the image based on the provided size constraints.
     private func sizeFittingSize(_ maxSize: CGSize, size: CGSize) -> CGSize {
         let originalAspectRatio = size.width / size.height
         if size.width > size.height {
@@ -57,6 +62,13 @@ public extension Image {
         }
     }
 
+    /// Decompresses the image using the given settings.
+    /// - Parameters:
+    ///   - newSize: The new size for the image.
+    ///   - constrain: A Boolean indicating whether the image should be constrained by its aspect ratio.
+    ///   - cornerRadius: The image corner radius.
+    ///   - scale: The factor by which the image should be scaled.
+    /// - Returns: The decompressed image.
     func decompressed(
         _ newSize: CGSize? = nil,
         constrain: Bool = false,
@@ -110,6 +122,9 @@ public extension Image {
                 }
         }
 
+    /// Edits the image using the given configuration.
+    /// - Parameter configuration: The configuration to use.
+    /// - Returns: The edited image, if successful.
     func edit(configuration: ImageConfiguration) -> Image? {
         guard configuration.size != nil || configuration.cornerRadius > 0 else {
             return self

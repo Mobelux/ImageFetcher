@@ -28,9 +28,11 @@
 #if os(macOS)
 import AppKit
 
+/// A platform-independent representation of an image.
 public typealias Image = NSImage
 #else
 import UIKit
 
+/// A platform-independent representation of an image.
 public typealias Image = UIImage
 #endif
