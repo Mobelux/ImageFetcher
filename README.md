@@ -16,6 +16,12 @@ Add `ImageFetcher` to your `Packages.swift` file:
 .package(url: "https://github.com/Mobelux/ImageFetcher.git", from: "2.0.0"),
 ```
 
+Then, add the product to any targets that need access to the library:
+
+```swift
+.product(name: "ImageFetcher", package: "ImageFetcher")
+```
+
 ## ⚙️ Usage
 
 Intialize `ImageFetcher` with a `Cache`:
