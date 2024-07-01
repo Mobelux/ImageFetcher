@@ -28,13 +28,13 @@
 import Foundation
 
 /// A simple wrapper for a closure performing an async network request.
-public struct Networking {
+public struct Networking: Sendable {
     /// Downloads the contents of a URL based on the specified URL request and delivers the data asynchronously.
-    public let load: (URLRequest) async throws -> Data
+    public let load: @Sendable (URLRequest) async throws -> Data
 
     /// Creates a wrapper to perform async network requests.
     /// - Parameter load: A closure to load a request.
-    public init(load: @escaping (URLRequest) async throws -> Data) {
+    public init(load: @escaping @Sendable (URLRequest) async throws -> Data) {
         self.load = load
     }
 }
@@ -45,6 +45,7 @@ public extension Networking {
     enum ResponseValidator {
         /// Throws an error if the given response was not successful.
         /// - Parameter response: The response to validate.
+        @Sendable
         public static func validate(_ response: URLResponse) throws {
             guard let httpResponse = response as? HTTPURLResponse else {
                 throw ImageError.cannotParse
@@ -63,7 +64,7 @@ public extension Networking {
     ///   - validateResponse: A closure that throws an error if the response passed to it was not successful.
     init(
         _ configuration: URLSessionConfiguration = .default,
-        validateResponse: @escaping (URLResponse) throws -> Void = ResponseValidator.validate
+        validateResponse: @escaping @Sendable (URLResponse) throws -> Void = ResponseValidator.validate
     ) {
         let session = URLSession(configuration: configuration)
         if #available(iOS 15.0, macOS 12.0, tvOS 15.0, watchOS 8.0, *) {
