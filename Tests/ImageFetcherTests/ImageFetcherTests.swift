@@ -249,11 +249,10 @@ extension ImageFetcherTests {
         })
 
         // Image Processor
-        var processedData: Data!
         let decompressExpectation = expectation(description: "Image data decompressed")
-        let imageProcessor = MockImageProcessor(onDecompress: { data in
+        let imageProcessor = MockImageProcessor(onDecompress: { processedData in
             defer { decompressExpectation.fulfill() }
-            processedData = data
+            XCTAssertEqual(processedData, imageData)
             return image
         })
 
@@ -262,7 +261,6 @@ extension ImageFetcherTests {
 
         await fulfillment(of: [loadExpectation, decompressExpectation])
         XCTAssertEqual(imageKey, ImageConfiguration(url: imageURL).key)
-        XCTAssertEqual(processedData, imageData)
         XCTAssertEqual(actualImage!.pngData()!, imageData)
     }
 
@@ -282,11 +280,10 @@ extension ImageFetcherTests {
         })
 
         // Image Processor
-        var processedData: Data!
         let decompressExpectation = expectation(description: "Image data decompressed")
-        let imageProcessor = MockImageProcessor(onDecompress: { data in
+        let imageProcessor = MockImageProcessor(onDecompress: { processedData in
             defer { decompressExpectation.fulfill() }
-            processedData = data
+            XCTAssertEqual(processedData, imageData)
             return image
         })
 
@@ -295,7 +292,6 @@ extension ImageFetcherTests {
 
         await fulfillment(of: [loadExpectation, decompressExpectation])
         XCTAssertEqual(imageKey, imageConfig.key)
-        XCTAssertEqual(processedData, imageData)
         XCTAssertEqual(actualImage!.pngData()!, imageData)
     }
 

@@ -9,7 +9,7 @@
 import Foundation
 
 /// A queue that regulates the execution of operations.
-public protocol Queue: AnyObject {
+public protocol Queue: AnyObject, Sendable {
     /// The maximum number of queued operations that can run at the same time.
     var maxConcurrentOperationCount: Int { get set }
 

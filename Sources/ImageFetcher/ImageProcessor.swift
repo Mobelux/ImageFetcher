@@ -112,7 +112,7 @@ extension Operation {
     static let isExecutingKey = "isExecuting"
 }
 
-final class ImageOperation: Operation {
+final class ImageOperation: Operation, @unchecked Sendable {
     enum Work: Equatable {
         case decompress
         case edit(ImageConfiguration)

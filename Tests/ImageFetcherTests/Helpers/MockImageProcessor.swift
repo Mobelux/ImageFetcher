@@ -31,16 +31,16 @@ import ImageFetcher
 struct MockImageProcessor: ImageProcessing {
     var decompressDelay: TimeInterval? = nil
     var processDelay: TimeInterval? = nil
-    var onDecompress: (Data) async throws -> Image
-    var onProcess: (Data, ImageConfiguration) async throws -> Image
-    var onCancellAll: () -> Void
+    var onDecompress: @Sendable (Data) async throws -> Image
+    var onProcess: @Sendable (Data, ImageConfiguration) async throws -> Image
+    var onCancellAll: @Sendable () -> Void
 
     init(
         decompressDelay: TimeInterval? = nil,
         processDelay: TimeInterval? = nil,
-        onDecompress: @escaping (Data) async throws -> Image = { Image(data: $0)! },
-        onProcess: @escaping (Data, ImageConfiguration) async throws -> Image = { data, _ in Image(data: data)! },
-        onCancellAll: @escaping () -> Void = {}
+        onDecompress: @escaping @Sendable (Data) async throws -> Image = { Image(data: $0)! },
+        onProcess: @escaping @Sendable (Data, ImageConfiguration) async throws -> Image = { data, _ in Image(data: data)! },
+        onCancellAll: @escaping @Sendable () -> Void = {}
     ) {
         self.decompressDelay = decompressDelay
         self.processDelay = processDelay
