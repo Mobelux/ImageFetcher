@@ -236,7 +236,6 @@ extension ImageFetcherTests {
 
     func testLoadURLFromCache() async {
         let imageData = Mock.makeImageData(side: 300)
-        let image = Image(data: imageData)!
         let imageURL = Mock.baseURL.appendingPathComponent("foo.png")
 
         // Cache
@@ -253,7 +252,7 @@ extension ImageFetcherTests {
         let imageProcessor = MockImageProcessor(onDecompress: { processedData in
             defer { decompressExpectation.fulfill() }
             XCTAssertEqual(processedData, imageData)
-            return image
+            return Image(data: imageData)!
         })
 
         let sut = ImageFetcher(cache, imageProcessor: imageProcessor)
@@ -266,7 +265,6 @@ extension ImageFetcherTests {
 
     func testLoadConfigurationFromCache() async throws {
         let imageData = Mock.makeImageData(side: 300)
-        let image = Image(data: imageData)!
         let imageURL = Mock.baseURL.appendingPathComponent("foo.png")
         let imageConfig = ImageConfiguration(url: imageURL)
 
@@ -284,7 +282,7 @@ extension ImageFetcherTests {
         let imageProcessor = MockImageProcessor(onDecompress: { processedData in
             defer { decompressExpectation.fulfill() }
             XCTAssertEqual(processedData, imageData)
-            return image
+            return Image(data: imageData)!
         })
 
         let sut = ImageFetcher(cache, imageProcessor: imageProcessor)
