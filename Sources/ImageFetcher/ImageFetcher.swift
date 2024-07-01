@@ -222,8 +222,10 @@ private extension ImageFetcher {
             let image = try await imageProcessor.process(data, configuration: imageConfiguration)
             taskManager.removeTask(imageConfiguration)
 
-            Task.detached(priority: .medium) { [weak self] in
-                try? await self?.cache(image, key: imageConfiguration)
+            if let imageData = image.pngData() {
+                Task.detached(priority: .medium) { [weak self] in
+                    try? await self?.cache.cache(imageData, key: imageConfiguration.key)
+                }
             }
 
             return .downloaded(image)
