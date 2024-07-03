@@ -49,10 +49,23 @@ public typealias Color = UIColor
 
 extension Color {
     public func image(_ size: CGSize = CGSize(width: 1, height: 1)) -> UIImage {
+        #if os(iOS) || os(tvOS)
         UIGraphicsImageRenderer(size: size).image { rendererContext in
             self.setFill()
             rendererContext.fill(CGRect(origin: .zero, size: size))
         }
+        #else
+        UIGraphicsBeginImageContextWithOptions(size, false, 0.0)
+        defer { UIGraphicsEndImageContext() }
+
+        self.setFill()
+        UIRectFill(CGRect(origin: .zero, size: size))
+        guard let image = UIGraphicsGetImageFromCurrentImageContext() else {
+            fatalError("Could not generate image: UIGraphicsGetImageFromCurrentImageContext returned nil.")
+        }
+
+        return image
+        #endif
     }
 }
 #endif
