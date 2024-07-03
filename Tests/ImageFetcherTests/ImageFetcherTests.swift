@@ -90,20 +90,21 @@ final class ImageFetcherTests: XCTestCase {
 // MARK: - Task Functionality
 extension ImageFetcherTests {
     func testGetExistingTask() async throws {
-        var readCount = 0
+        let readCounter = Counter()
+        let requestCounter = Counter()
+
         let cache = MockCache(
             onCache: { _, _ in },
             onData: { _ in
-                readCount += 1
+                await readCounter.increment()
                 throw MockCache.CacheError(reason: "File missing")
             })
 
-        var requestCount = 0
         let networking = Networking.mock(responseDelay: 1.0) { _ in
-            requestCount += 1
+            await requestCounter.increment()
             return Mock.makeImageData(side: 100)
-
         }
+
         let sut = ImageFetcher(cache, networking: networking, imageProcessor: MockImageProcessor())
 
         let imageURL = Mock.makeURL()
@@ -114,8 +115,13 @@ extension ImageFetcherTests {
 
         let (imageSource1, imageSource2) = try await (task1.value, task2.value)
         XCTAssertEqual(imageSource1.value.pngData()!, imageSource2.value.pngData()!)
+
+        let readCount = await readCounter.count
         XCTAssertEqual(readCount, 1)
+
+        let requestCount = await requestCounter.count
         XCTAssertEqual(requestCount, 1)
+
         XCTAssertEqual(sut.taskCount, 0)
     }
 
