@@ -150,7 +150,7 @@ extension ImageFetcherTests {
 
         await fulfillment(of: [readExpectation, requestExpectation], timeout: 0.5)
         let image = try await task1.value
-        XCTAssertEqual(image.value.pngData()!, imageData)
+        Self.assertEquality(of: image.value, with: imageData)
     }
 }
 
@@ -254,7 +254,7 @@ extension ImageFetcherTests {
         let actualImage = await sut.load(image: imageURL)
 
         await fulfillment(of: [loadExpectation, decompressExpectation])
-        XCTAssertEqual(actualImage!.pngData()!, imageData)
+        Self.assertEquality(of: actualImage!, with: imageData)
     }
 
     func testLoadConfigurationFromCache() async throws {
@@ -282,7 +282,7 @@ extension ImageFetcherTests {
         let actualImage = await sut.load(image: imageConfig)
 
         await fulfillment(of: [loadExpectation, decompressExpectation])
-        XCTAssertEqual(actualImage!.pngData()!, imageData)
+        Self.assertEquality(of: actualImage!, with: imageData)
     }
 
     func testLoadUncachedFromCache() async throws {
@@ -307,5 +307,15 @@ extension ImageFetcherTests {
 
         await fulfillment(of: [loadExpectation], timeout: 0.5)
         XCTAssertNil(actualImage)
+    }
+}
+
+extension ImageFetcherTests {
+    static func assertEquality(of image: Image, with expectedData: Data) {
+        #if os(macOS)
+        XCTAssertEqual(image.pngData()!, expectedData)
+        #else
+        XCTAssertEqual(image.pngData()!, Image(data: expectedData)!.pngData()!)
+        #endif
     }
 }
