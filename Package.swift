@@ -15,7 +15,7 @@ let package = Package(
         .library(name: "ImageFetcher", targets: ["ImageFetcher"])
     ],
     dependencies: [
-         .package(url: "https://github.com/Mobelux/DiskCache.git", from: "2.0.0"),
+         .package(url: "https://github.com/Mobelux/DiskCache.git", from: "2.2.0"),
          .package(url: "https://github.com/apple/swift-crypto.git", from: "3.2.0")
     ],
     targets: [
