@@ -64,7 +64,7 @@ final class ImageFetcherTests: XCTestCase {
             }
 
             return try await taskGroup.reduce(into: [Image]()) { images, image in
-                    images.append(image)
+                images.append(image)
             }
         }
 
@@ -202,8 +202,8 @@ extension ImageFetcherTests {
 
         let cacheExpectation = expectation(description: "Image cached")
         let cache = MockCache(onCache: { data, key in
-             XCTAssertEqual(data, imageData)
-             XCTAssertEqual(key, ImageConfiguration(url: imageURL).key)
+            XCTAssertEqual(data, imageData)
+            XCTAssertEqual(key, ImageConfiguration(url: imageURL).key)
             cacheExpectation.fulfill()
         })
 
