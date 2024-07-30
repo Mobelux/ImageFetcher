@@ -29,23 +29,23 @@ import Foundation
 import ImageFetcher
 import XCTest
 
-class MockCache: Cache {
+final class MockCache: Cache {
     struct CacheError: Error {
         let reason: String
     }
 
-    var onCache: ((Data, String) throws -> ())?
-    var onData: ((String) throws -> Data)?
-    var onDelete: ((String) throws -> ())?
-    var onDeleteAll: (() throws -> ())?
-    var onFileURL: ((String) -> URL)?
+    let onCache: (@Sendable (Data, String) async throws -> Void)?
+    let onData: (@Sendable (String) async throws -> Data)?
+    let onDelete: (@Sendable (String) async throws -> Void)?
+    let onDeleteAll: (@Sendable () async throws -> Void)?
+    let onFileURL: (@Sendable (String) -> URL)?
 
     init(
-        onCache: ((Data, String) throws -> ())? = nil,
-        onData: ((String) throws -> Data)? = nil,
-        onDelete: ((String) throws -> ())? = nil,
-        onDeleteAll: (() throws -> ())? = nil,
-        onFileURL: ((String) -> URL)? = nil
+        onCache: (@Sendable (Data, String) async throws -> Void)? = nil,
+        onData: (@Sendable (String) async throws -> Data)? = nil,
+        onDelete: (@Sendable (String) async throws -> Void)? = nil,
+        onDeleteAll: (@Sendable () async throws -> Void)? = nil,
+        onFileURL: (@Sendable (String) -> URL)? = nil
     ) {
         self.onCache = onCache
         self.onData = onData
@@ -55,35 +55,20 @@ class MockCache: Cache {
     }
 
     func syncCache(_ data: Data, key: String) throws {
-        if let onCache {
-            try onCache(data, key)
-        } else {
-            XCTFail("MockCache.\(#function)")
-        }
+        XCTFail("Unimplemented")
     }
 
     func syncData(_ key: String) throws -> Data {
-        if let onData {
-            return try onData(key)
-        } else {
-            XCTFail("MockCache.\(#function)"); return Data()
-        }
+        XCTFail("Unimplemented")
+        return Mock.makeImageData(side: 300)
     }
 
     func syncDelete(_ key: String) throws {
-        if let onDelete {
-            try onDelete(key)
-        } else {
-            XCTFail("MockCache.\(#function)")
-        }
+        XCTFail("Unimplemented")
     }
 
     func syncDeleteAll() throws {
-        if let onDeleteAll {
-            try onDeleteAll()
-        } else {
-            XCTFail("MockCache.\(#function)")
-        }
+        XCTFail("Unimplemented")
     }
 
     func fileURL(_ key: String) -> URL {
@@ -98,7 +83,7 @@ class MockCache: Cache {
 
     func cache(_ data: Data, key: String) async throws {
         if let onCache {
-            try onCache(data, key)
+            try await onCache(data, key)
         } else {
             XCTFail("MockCache.\(#function)")
         }
@@ -106,7 +91,7 @@ class MockCache: Cache {
 
     func data(_ key: String) async throws -> Data {
         if let onData {
-            return try onData(key)
+            return try await onData(key)
         } else {
             XCTFail("MockCache.\(#function)"); return Data()
         }
@@ -114,7 +99,7 @@ class MockCache: Cache {
 
     func delete(_ key: String) async throws {
         if let onDelete {
-            try onDelete(key)
+            try await onDelete(key)
         } else {
             XCTFail("MockCache.\(#function)")
         }
@@ -122,7 +107,7 @@ class MockCache: Cache {
 
     func deleteAll() async throws {
         if let onDeleteAll {
-            try onDeleteAll()
+            try await onDeleteAll()
         } else {
             XCTFail("MockCache.\(#function)")
         }

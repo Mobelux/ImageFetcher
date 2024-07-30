@@ -64,7 +64,7 @@ final class ImageFetcherTests: XCTestCase {
             }
 
             return try await taskGroup.reduce(into: [Image]()) { images, image in
-                    images.append(image)
+                images.append(image)
             }
         }
 
@@ -90,20 +90,21 @@ final class ImageFetcherTests: XCTestCase {
 // MARK: - Task Functionality
 extension ImageFetcherTests {
     func testGetExistingTask() async throws {
-        var readCount = 0
+        let readCounter = Counter()
+        let requestCounter = Counter()
+
         let cache = MockCache(
             onCache: { _, _ in },
             onData: { _ in
-                readCount += 1
+                await readCounter.increment()
                 throw MockCache.CacheError(reason: "File missing")
             })
 
-        var requestCount = 0
         let networking = Networking.mock(responseDelay: 1.0) { _ in
-            requestCount += 1
+            await requestCounter.increment()
             return Mock.makeImageData(side: 100)
-
         }
+
         let sut = ImageFetcher(cache, networking: networking, imageProcessor: MockImageProcessor())
 
         let imageURL = Mock.makeURL()
@@ -114,8 +115,13 @@ extension ImageFetcherTests {
 
         let (imageSource1, imageSource2) = try await (task1.value, task2.value)
         XCTAssertEqual(imageSource1.value.pngData()!, imageSource2.value.pngData()!)
+
+        let readCount = await readCounter.count
         XCTAssertEqual(readCount, 1)
+
+        let requestCount = await requestCounter.count
         XCTAssertEqual(requestCount, 1)
+
         XCTAssertEqual(sut.taskCount, 0)
     }
 
@@ -144,7 +150,7 @@ extension ImageFetcherTests {
 
         await fulfillment(of: [readExpectation, requestExpectation], timeout: 0.5)
         let image = try await task1.value
-        XCTAssertEqual(image.value.pngData()!, imageData)
+        Self.assertEquality(of: image.value, with: imageData)
     }
 }
 
@@ -162,152 +168,131 @@ extension ImageFetcherTests {
     }
 
     func testDeleteURL() async throws {
-        var deletedKey: String!
+        let imageURL = Mock.baseURL.appendingPathComponent("foo.png")
+
         let deletionExpectation = expectation(description: "Cached image deleted")
         let cache = MockCache(onDelete: { key in
-            deletedKey = key
+            XCTAssertEqual(key, ImageConfiguration(url: imageURL).key)
             deletionExpectation.fulfill()
         })
-
-        let imageURL = Mock.baseURL.appendingPathComponent("foo.png")
 
         let sut = ImageFetcher(cache, imageProcessor: MockImageProcessor())
         try await sut.delete(imageURL)
         await fulfillment(of: [deletionExpectation])
-        XCTAssertEqual(deletedKey, ImageConfiguration(url: imageURL).key)
     }
 
     func testDeleteConfiguration() async throws {
-        var deletedKey: String!
+        let imageConfig = ImageConfiguration(url: Mock.makeURL())
+
         let deletionExpectation = expectation(description: "Cached image deleted")
         let cache = MockCache(onDelete: { key in
-            deletedKey = key
+            XCTAssertEqual(key, imageConfig.key)
             deletionExpectation.fulfill()
         })
-
-        let imageConfig = ImageConfiguration(url: Mock.makeURL())
 
         let sut = ImageFetcher(cache, imageProcessor: MockImageProcessor())
         try await sut.delete(imageConfig)
         await fulfillment(of: [deletionExpectation])
-        XCTAssertEqual(deletedKey, imageConfig.key)
     }
 
     func testCacheURL() async throws {
-        var cachedData: Data!
-        var cachedKey: String!
+        let image = Color.random().image(CGSize(width: 250, height: 250))
+        let imageData = image.pngData()
+        let imageURL = Mock.baseURL.appendingPathComponent("foo.png")
+
         let cacheExpectation = expectation(description: "Image cached")
         let cache = MockCache(onCache: { data, key in
-            cachedData = data
-            cachedKey = key
+            XCTAssertEqual(data, imageData)
+            XCTAssertEqual(key, ImageConfiguration(url: imageURL).key)
             cacheExpectation.fulfill()
         })
-
-        let image = Color.random().image(CGSize(width: 250, height: 250))
-        let imageURL = Mock.baseURL.appendingPathComponent("foo.png")
 
         let sut = ImageFetcher(cache, imageProcessor: MockImageProcessor())
         try await sut.cache(image, key: imageURL)
         await fulfillment(of: [cacheExpectation])
-        XCTAssertEqual(cachedData, image.pngData())
-        XCTAssertEqual(cachedKey, ImageConfiguration(url: imageURL).key)
     }
 
     func testCacheConfiguration() async throws {
-        var cachedData: Data!
-        var cachedKey: String!
-        let cacheExpectation = expectation(description: "Image cached")
-        let cache = MockCache(onCache: { data, key in
-            cachedData = data
-            cachedKey = key
-            cacheExpectation.fulfill()
-        })
-
         let image = Color.random().image(CGSize(width: 250, height: 250))
+        let imageData = image.pngData()
         let imageURL = Mock.baseURL.appendingPathComponent("foo.png")
         let imageConfig = ImageConfiguration(url: imageURL)
+
+        let cacheExpectation = expectation(description: "Image cached")
+        let cache = MockCache(onCache: { data, key in
+            XCTAssertEqual(data, imageData)
+            XCTAssertEqual(key, imageConfig.key)
+            cacheExpectation.fulfill()
+        })
 
         let sut = ImageFetcher(cache, imageProcessor: MockImageProcessor())
         try await sut.cache(image, key: imageConfig)
         await fulfillment(of: [cacheExpectation])
-        XCTAssertEqual(cachedData, image.pngData())
-        XCTAssertEqual(cachedKey, imageConfig.key)
     }
 
     func testLoadURLFromCache() async {
         let imageData = Mock.makeImageData(side: 300)
-        let image = Image(data: imageData)!
         let imageURL = Mock.baseURL.appendingPathComponent("foo.png")
 
         // Cache
-        var imageKey: String!
         let loadExpectation = expectation(description: "Cached image loaded")
         let cache = MockCache(onData: { key in
             defer { loadExpectation.fulfill() }
-            imageKey = key
+            XCTAssertEqual(key, ImageConfiguration(url: imageURL).key)
             return imageData
         })
 
         // Image Processor
-        var processedData: Data!
         let decompressExpectation = expectation(description: "Image data decompressed")
-        let imageProcessor = MockImageProcessor(onDecompress: { data in
+        let imageProcessor = MockImageProcessor(onDecompress: { processedData in
             defer { decompressExpectation.fulfill() }
-            processedData = data
-            return image
+            XCTAssertEqual(processedData, imageData)
+            return Image(data: imageData)!
         })
 
         let sut = ImageFetcher(cache, imageProcessor: imageProcessor)
         let actualImage = await sut.load(image: imageURL)
 
         await fulfillment(of: [loadExpectation, decompressExpectation])
-        XCTAssertEqual(imageKey, ImageConfiguration(url: imageURL).key)
-        XCTAssertEqual(processedData, imageData)
-        XCTAssertEqual(actualImage!.pngData()!, imageData)
+        Self.assertEquality(of: actualImage!, with: imageData)
     }
 
     func testLoadConfigurationFromCache() async throws {
         let imageData = Mock.makeImageData(side: 300)
-        let image = Image(data: imageData)!
         let imageURL = Mock.baseURL.appendingPathComponent("foo.png")
         let imageConfig = ImageConfiguration(url: imageURL)
 
         // Cache
-        var imageKey: String!
         let loadExpectation = expectation(description: "Cached image loaded")
         let cache = MockCache(onData: { key in
             defer { loadExpectation.fulfill() }
-            imageKey = key
+            XCTAssertEqual(key, imageConfig.key)
             return imageData
         })
 
         // Image Processor
-        var processedData: Data!
         let decompressExpectation = expectation(description: "Image data decompressed")
-        let imageProcessor = MockImageProcessor(onDecompress: { data in
+        let imageProcessor = MockImageProcessor(onDecompress: { processedData in
             defer { decompressExpectation.fulfill() }
-            processedData = data
-            return image
+            XCTAssertEqual(processedData, imageData)
+            return Image(data: imageData)!
         })
 
         let sut = ImageFetcher(cache, imageProcessor: imageProcessor)
         let actualImage = await sut.load(image: imageConfig)
 
         await fulfillment(of: [loadExpectation, decompressExpectation])
-        XCTAssertEqual(imageKey, imageConfig.key)
-        XCTAssertEqual(processedData, imageData)
-        XCTAssertEqual(actualImage!.pngData()!, imageData)
+        Self.assertEquality(of: actualImage!, with: imageData)
     }
 
     func testLoadUncachedFromCache() async throws {
         let imageConfig = ImageConfiguration(url: Mock.baseURL.appendingPathComponent("foo.png"))
 
         // Cache
-        var imageKey: String!
         let loadExpectation = expectation(description: "Cached image loaded")
         let cache = MockCache(onData: { key in
             defer { loadExpectation.fulfill() }
-            imageKey = key
+            XCTAssertEqual(key, imageConfig.key)
             throw MockCache.CacheError(reason: "File missing")
         })
 
@@ -321,7 +306,16 @@ extension ImageFetcherTests {
         let actualImage = await sut.load(image: imageConfig)
 
         await fulfillment(of: [loadExpectation], timeout: 0.5)
-        XCTAssertEqual(imageKey, imageConfig.key)
         XCTAssertNil(actualImage)
+    }
+}
+
+extension ImageFetcherTests {
+    static func assertEquality(of image: Image, with expectedData: Data) {
+        #if os(macOS)
+        XCTAssertEqual(image.pngData()!, expectedData)
+        #else
+        XCTAssertEqual(image.pngData()!, Image(data: expectedData)!.pngData()!)
+        #endif
     }
 }

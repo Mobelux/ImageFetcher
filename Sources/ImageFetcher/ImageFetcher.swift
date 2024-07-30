@@ -33,14 +33,11 @@ public final class ImageFetcher: ImageFetching {
     internal let cache: Cache
     internal let imageProcessor: ImageProcessing
     internal let networking: Networking
-    private let lock = NSLock()
-    private var tasks: [String: Task<ImageSource, Error>] = [:]
+    private let taskManager = TaskManager()
 
     /// The number of active tasks.
     public var taskCount: Int {
-        lock.lock()
-        defer { lock.unlock() }
-        return tasks.count
+        taskManager.taskCount
     }
 
     /// Creates an image fetcher with the given dependencies.
@@ -90,21 +87,21 @@ public extension ImageFetcher {
     /// - Parameter imageConfiguration: The configuation of the image to be downloaded.
     /// - Returns: The parent task of the image loading operation.
     func task(_ imageConfiguration: ImageConfiguration) async -> Task<ImageSource, Error> {
-        if let existingTask = getTask(imageConfiguration) {
+        if let existingTask = taskManager.getTask(imageConfiguration) {
             return existingTask
         } else if let cachedData = try? await cache.data(imageConfiguration.key) {
             let decompressTask = Task(priority: imageConfiguration.priority) {
                 try await decompress(cachedData, imageConfiguration: imageConfiguration)
             }
 
-            insertTask(decompressTask, key: imageConfiguration)
+            taskManager.insertTask(decompressTask, key: imageConfiguration)
             return decompressTask
         } else {
             let downloadTask = Task(priority: imageConfiguration.priority) {
                 try await download(imageConfiguration)
             }
 
-            insertTask(downloadTask, key: imageConfiguration)
+            taskManager.insertTask(downloadTask, key: imageConfiguration)
             return downloadTask
         }
     }
@@ -132,7 +129,7 @@ public extension ImageFetcher {
     /// Cancels an in-flight image load.
     /// - Parameter imageConfiguration: The configuation of the image to be downloaded.
     func cancel(_ imageConfiguration: ImageConfiguration) {
-        guard let task = removeTask(imageConfiguration) else {
+        guard let task = taskManager.removeTask(imageConfiguration) else {
             return
         }
 
@@ -143,14 +140,14 @@ public extension ImageFetcher {
     /// - Parameter url: The url of the image to be downloaded.
     /// - Returns: The parent task of the image loading operation.
     subscript (_ url: URL) -> Task<ImageSource, Error>? {
-        getTask(ImageConfiguration(url: url))
+        taskManager.getTask(ImageConfiguration(url: url))
     }
 
     /// Returns the `Task` associated with the given configuration, if one exists.
     /// - Parameter url: The configuration of the image to be downloaded.
     /// - Returns: The parent task of the image loading operation.
     subscript (_ imageConfiguration: ImageConfiguration) -> Task<ImageSource, Error>? {
-        getTask(imageConfiguration)
+        taskManager.getTask(imageConfiguration)
     }
 
     /// Deletes all images in the cache.
@@ -212,7 +209,7 @@ public extension ImageFetcher {
             try await decompress(cachedData, imageConfiguration: key)
         }
 
-        insertTask(decompressTask, key: key)
+        taskManager.insertTask(decompressTask, key: key)
         return try? await decompressTask.value.value
     }
 }
@@ -223,7 +220,7 @@ private extension ImageFetcher {
         do {
             let data = try await networking.load(URLRequest(url: imageConfiguration.url))
             let image = try await imageProcessor.process(data, configuration: imageConfiguration)
-            removeTask(imageConfiguration)
+            taskManager.removeTask(imageConfiguration)
 
             Task.detached(priority: .medium) { [weak self] in
                 try? await self?.cache(image, key: imageConfiguration)
@@ -231,7 +228,7 @@ private extension ImageFetcher {
 
             return .downloaded(image)
         } catch {
-            removeTask(imageConfiguration)
+            taskManager.removeTask(imageConfiguration)
             throw error
         }
     }
@@ -239,37 +236,13 @@ private extension ImageFetcher {
     func decompress(_ imageData: Data, imageConfiguration: ImageConfiguration) async throws -> ImageSource {
         do {
             let image = try await imageProcessor.decompress(imageData)
-            removeTask(imageConfiguration)
+            taskManager.removeTask(imageConfiguration)
             return .cached(image)
         } catch let error as CancellationError {
-            removeTask(imageConfiguration)
+            taskManager.removeTask(imageConfiguration)
             throw error
         } catch {
             return try await download(imageConfiguration)
         }
-    }
-
-    // MARK: Task Access
-
-    func insertTask(_ imageFetcherTask: Task<ImageSource, Error>, key: ImageConfiguration) {
-        lock.lock()
-        defer { lock.unlock() }
-
-        tasks[key.key] = imageFetcherTask
-    }
-
-    func getTask(_ key: ImageConfiguration) -> Task<ImageSource, Error>? {
-        lock.lock()
-        defer { lock.unlock() }
-
-        return tasks[key.key]
-    }
-
-    @discardableResult
-    func removeTask(_ key: ImageConfiguration) -> Task<ImageSource, Error>? {
-        lock.lock()
-        defer { lock.unlock() }
-
-        return tasks.removeValue(forKey: key.key)
     }
 }

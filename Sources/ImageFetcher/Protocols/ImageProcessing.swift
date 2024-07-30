@@ -28,7 +28,7 @@
 import Foundation
 
 /// A class of types responsible for decompressing and processing image data.
-public protocol ImageProcessing {
+public protocol ImageProcessing: Sendable {
     /// Decompressed an image from the given data.
     /// - Parameter data: The image data.
     /// - Returns: The decompressed image.

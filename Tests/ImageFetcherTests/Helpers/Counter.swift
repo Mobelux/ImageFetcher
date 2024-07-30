@@ -1,10 +1,10 @@
 //
-//  Networking+Mock.swift
+//  Counter.swift
 //  Mobelux
 //
 //  MIT License
 //
-//  Copyright (c) 2023 Mobelux LLC
+//  Copyright (c) 2024 Mobelux LLC
 //
 //  Permission is hereby granted, free of charge, to any person obtaining a copy
 //  of this software and associated documentation files (the "Software"), to deal
@@ -26,21 +26,13 @@
 //
 
 import Foundation
-import ImageFetcher
-import XCTest
 
-extension Networking {
-    static func mock(
-        responseDelay: TimeInterval? = nil,
-        responseProvider: @escaping @Sendable (URL) async throws -> Data = { _ in XCTFail("Networking.load"); return Data() }
-    ) -> Self {
-        .init(
-            load: { request in
-                if let responseDelay {
-                    try await Task.sleep(nanoseconds: UInt64(responseDelay * 1_000_000_000))
-                    try Task.checkCancellation()
-                }
-                return try await responseProvider(request.url!)
-            })
+actor Counter {
+    private(set) var count: Int = 0
+
+    @discardableResult
+    func increment() -> Int {
+        count += 1
+        return count
     }
 }

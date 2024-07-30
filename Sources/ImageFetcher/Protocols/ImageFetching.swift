@@ -6,11 +6,7 @@
 //  Copyright © 2018 Neighborhood Goods. All rights reserved.
 //
 
-#if os(macOS)
-import AppKit
-#else
-import UIKit
-#endif
+import Foundation
 
 /// A class of types that download and cache images from urls.
 public protocol ImageURLFetching {

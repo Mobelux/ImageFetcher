@@ -1,10 +1,10 @@
 //
-//  Networking+Mock.swift
+//  TaskManager.swift
 //  Mobelux
 //
 //  MIT License
 //
-//  Copyright (c) 2023 Mobelux LLC
+//  Copyright (c) 2024 Mobelux LLC
 //
 //  Permission is hereby granted, free of charge, to any person obtaining a copy
 //  of this software and associated documentation files (the "Software"), to deal
@@ -26,21 +26,36 @@
 //
 
 import Foundation
-import ImageFetcher
-import XCTest
 
-extension Networking {
-    static func mock(
-        responseDelay: TimeInterval? = nil,
-        responseProvider: @escaping @Sendable (URL) async throws -> Data = { _ in XCTFail("Networking.load"); return Data() }
-    ) -> Self {
-        .init(
-            load: { request in
-                if let responseDelay {
-                    try await Task.sleep(nanoseconds: UInt64(responseDelay * 1_000_000_000))
-                    try Task.checkCancellation()
-                }
-                return try await responseProvider(request.url!)
-            })
+final class TaskManager: @unchecked Sendable {
+    private let lock = NSLock()
+    private var tasks: [String: Task<ImageSource, Error>] = [:]
+
+    var taskCount: Int {
+        lock.lock()
+        defer { lock.unlock() }
+        return tasks.count
+    }
+
+    func insertTask(_ imageFetcherTask: Task<ImageSource, Error>, key: ImageConfiguration) {
+        lock.lock()
+        defer { lock.unlock() }
+
+        tasks[key.key] = imageFetcherTask
+    }
+
+    func getTask(_ key: ImageConfiguration) -> Task<ImageSource, Error>? {
+        lock.lock()
+        defer { lock.unlock() }
+
+        return tasks[key.key]
+    }
+
+    @discardableResult
+    func removeTask(_ key: ImageConfiguration) -> Task<ImageSource, Error>? {
+        lock.lock()
+        defer { lock.unlock() }
+
+        return tasks.removeValue(forKey: key.key)
     }
 }
